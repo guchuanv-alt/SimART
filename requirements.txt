@@ -1,0 +1,18 @@
+# Python dependencies for SimART helper scripts, Sionna workflows, and
+# beam-selection tools. ROS packages such as rospy and message modules are
+# provided by the ROS installation and are not installed through pip.
+numpy
+pandas
+matplotlib
+Pillow
+scipy
+PyYAML
+omegaconf
+sionna
+mitsuba
+drjit
+polyscope
+torch
+
+# Optional: used only by the legacy Python AirSim image bridge.
+airsim
