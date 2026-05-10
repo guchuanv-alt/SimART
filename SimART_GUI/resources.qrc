@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/">
+    <file>qml/UeLiveView.qml</file>
+  </qresource>
+</RCC>

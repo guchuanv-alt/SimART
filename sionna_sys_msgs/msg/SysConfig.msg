@@ -1,0 +1,9 @@
+bool enabled
+uint32 num_subcarriers
+float64 subcarrier_spacing_hz
+uint32 num_ofdm_symbols
+float64 temperature_k
+float64 bler_target
+int32 mcs_table_index
+float64 bs_tx_power_dbm
+float64 carrier_frequency_hz

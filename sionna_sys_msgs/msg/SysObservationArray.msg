@@ -1,0 +1,14 @@
+std_msgs/Header header
+geometry_msgs/Point rx_position
+geometry_msgs/Vector3 rx_velocity
+uint32 sim_idx
+float64 odom_stamp_s
+bool enabled
+uint8 SCHED_UNKNOWN=0
+uint8 SCHED_BEST_RATE_SINGLE_UAV=1
+uint8 scheduler_policy
+string scheduler_policy_name
+uint32 num_candidates
+sionna_sys_msgs/SysConfig config
+sionna_sys_msgs/SysServingLink serving
+sionna_sys_msgs/SysCandidateObservation[] candidates

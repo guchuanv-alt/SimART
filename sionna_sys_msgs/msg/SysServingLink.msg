@@ -1,0 +1,13 @@
+bool valid
+int32 serving_index
+int32 anchor_id
+string anchor_name
+float64 rate_bpshz
+float64 sinr_eff_db
+int32 mcs_index
+int32 num_decoded_bits
+uint8 TB_STATUS_UNKNOWN=0
+uint8 TB_STATUS_ACK=1
+uint8 TB_STATUS_NACK=2
+uint8 tb_status
+float64 spectral_efficiency_bpshz

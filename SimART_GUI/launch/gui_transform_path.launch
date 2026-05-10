@@ -1,0 +1,30 @@
+<launch>
+    <arg name="sample_map_dir" default="$(optenv SIMART_SAMPLE_MAP_DIR $(find airsim_gui_UErealtime)/SimART_sample_maps/BigCitySample)" />
+    <arg name="odom_topic" default="/airsim_node/PX4/odom_local_ned" />
+    <arg name="path_in_topic" default="/airsim_node/PX4/odom_local_ned_3d" />
+    <arg name="ros_to_map_matrix_json" default="$(arg sample_map_dir)/config/ROS_to_3D_matrix.json" />
+
+    <node pkg="airsim_gui_UErealtime"
+        type="transform_coords.py"
+        name="transform_ros_to_map"
+        output="screen">
+    <param name="input_topic" value="$(arg odom_topic)"/>
+    <param name="output_topic" value="$(arg path_in_topic)"/>
+    <param name="matrix_file" value="$(arg ros_to_map_matrix_json)"/>
+
+    <!-- Optional. Leave empty to keep frame_id / child_frame_id from the original message. -->
+    <!-- <param name="output_frame_id" value="map"/>
+    <param name="output_child_frame_id" value="base_link"/> -->
+
+    <!-- Also rotate angular velocity. -->
+    <param name="transform_angular_velocity" value="false"/>
+    </node>
+
+    <node name="path_to_rviz_odom" pkg="airsim_gui_UErealtime" type="path_to_rviz_odom.py" output="screen">
+        <param name="in_topic" value="$(arg path_in_topic)" />
+        <param name="out_topic" value="/uav_path" />
+        <param name="frame_id" value="map" />
+        <param name="max_len" value="0" />
+        <param name="min_dist" value="0.02" />
+    </node>
+</launch>

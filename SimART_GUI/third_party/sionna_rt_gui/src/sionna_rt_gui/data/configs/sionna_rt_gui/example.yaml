@@ -1,0 +1,12 @@
+background_color: [0.05, 0.05, 0.05]
+gui_mode: FULL
+
+tx_array:
+  vertical_spacing: 0.25
+
+rendering:
+  max_accumulated_spp: 128
+
+radio_map:
+  cell_size: [0.5, 0.5]
+  color_map: "plasma"

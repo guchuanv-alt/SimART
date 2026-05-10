@@ -1,0 +1,11 @@
+std_msgs/Header header
+string codebook_id
+string codebook_type
+uint32 tx_array_num_rows
+uint32 tx_array_num_cols
+uint32 beam_oversampling_v
+uint32 beam_oversampling_h
+bool normalize_power
+uint32 num_beams
+uint32 tx_ant
+BeamEntry[] beams

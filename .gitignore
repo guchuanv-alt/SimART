@@ -1,0 +1,11 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+# The sample maps
+SimART_sample_maps/
+# Downloaded release archive
+SimART_sample_maps.zip
+.vscode/
+.codex/
+.codex

@@ -1,0 +1,58 @@
+{
+    "base_stations": [
+        {
+            "color": [
+                0.95,
+                0.45,
+                0.2
+            ],
+            "id": "bs_0",
+            "name": "BS 0",
+            "position": [
+                0,
+                0,
+                22
+            ],
+            "preview_camera_name": "bs_0_camera",
+            "preview_fps": 20,
+            "preview_offset_z": 0,
+            "preview_ros_topic": "/airsim_gui/station_cameras/bs_0/image_raw"
+        },
+        {
+            "color": [
+                0.2,
+                0.75,
+                0.95
+            ],
+            "id": "bs_1",
+            "name": "BS 1",
+            "position": [
+                55,
+                -35,
+                18
+            ],
+            "preview_camera_name": "bs_1_camera",
+            "preview_fps": 20,
+            "preview_offset_z": 0,
+            "preview_ros_topic": "/airsim_gui/station_cameras/bs_1/image_raw"
+        },
+        {
+            "color": [
+                0.4,
+                0.9,
+                0.35
+            ],
+            "id": "bs_2",
+            "name": "BS 2",
+            "position": [
+                -32,
+                87.7,
+                1
+            ],
+            "preview_camera_name": "bs_2_camera",
+            "preview_fps": 20,
+            "preview_offset_z": 0,
+            "preview_ros_topic": "/airsim_gui/station_cameras/bs_2/image_raw"
+        }
+    ]
+}

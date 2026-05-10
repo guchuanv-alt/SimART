@@ -1,0 +1,98 @@
+<launch>
+    <!-- =========================
+         1) Required parameters
+         ========================= -->
+    <arg name="sample_map_dir" default="$(optenv SIMART_SAMPLE_MAP_DIR $(find airsim_gui_UErealtime)/SimART_sample_maps/BigCitySample)" />
+    <arg name="scene_path" default="$(arg sample_map_dir)/BigCitySample_simptest_sionna/BigCitySample_simptest.xml" />
+    <arg name="bs_list_json" default="$(arg sample_map_dir)/config/bs_list_simplified.json" />
+    <arg name="ros_to_map_matrix_json" default="$(arg sample_map_dir)/config/ROS_to_3D_matrix.json" />
+
+    <!-- =========================
+         2) Topics and runtime frequency
+         ========================= -->
+    <arg name="odom_topic" default="/airsim_node/PX4/odom_local_ned" />
+    <arg name="sim_hz" default="10.0" />
+    <arg name="max_odom_staleness_s" default="1.0" />
+
+    <!-- =========================
+         3) Output files
+         ========================= -->
+    <arg name="measurement_csv" default="" />
+    <arg name="reset_measurement_csv" default="false" />
+
+    <!-- =========================
+         4) RF observation publishing
+         ========================= -->
+    <arg name="rf_observation_topic" default="/sionna/rf_observations" />
+    <arg name="sys_observation_topic" default="/sionna/sys_observations" />
+    <arg name="rf_frame_id" default="map" />
+
+    <!-- =========================
+         5) Sionna RT core parameters
+         ========================= -->
+    <arg name="fc" default="3.5e9" />
+    <arg name="mi_variant" default="cuda_ad_mono_polarized" />
+    <arg name="max_depth" default="1" />
+    <arg name="samples_per_src" default="256" />
+    <arg name="max_num_paths_per_src" default="64" />
+    <arg name="synthetic_array" default="true" />
+
+    <!-- =========================
+         6) Preview rendering parameters
+         ========================= -->
+    <arg name="enable_preview_render" default="false" />
+    <arg name="preview_output_dir" default="$(find airsim_gui_UErealtime)/output/preview_frames" />
+    <arg name="preview_width" default="960" />
+    <arg name="preview_height" default="720" />
+    <arg name="preview_show_devices" default="true" />
+    <arg name="preview_show_orientations" default="false" />
+    <arg name="preview_camera_follow_y_offset_m" default="80.0" />
+    <arg name="preview_camera_height_offset_m" default="120.0" />
+
+    <!-- =========================
+         7) Node
+         ========================= -->
+    <node
+        pkg="airsim_gui_UErealtime"
+        type="sionna_sim_only_topic2.py"
+        name="sionna_sim_only_topic"
+        output="screen">
+
+        <!-- Required -->
+        <param name="scene_path" value="$(arg scene_path)" />
+        <param name="bs_list_json" value="$(arg bs_list_json)" />
+        <param name="ros_to_map_matrix_json" value="$(arg ros_to_map_matrix_json)" />
+
+        <!-- Runtime parameters -->
+        <param name="odom_topic" value="$(arg odom_topic)" />
+        <param name="sim_hz" value="$(arg sim_hz)" />
+        <param name="max_odom_staleness_s" value="$(arg max_odom_staleness_s)" />
+
+        <!-- Output -->
+        <param name="measurement_csv" value="$(arg measurement_csv)" />
+        <param name="reset_measurement_csv" value="$(arg reset_measurement_csv)" />
+
+        <!-- RF observation publishing -->
+        <param name="rf_observation_topic" value="$(arg rf_observation_topic)" />
+        <param name="sys_observation_topic" value="$(arg sys_observation_topic)" />
+        <param name="rf_frame_id" value="$(arg rf_frame_id)" />
+
+        <!-- Sionna RT -->
+        <param name="fc" value="$(arg fc)" />
+        <param name="mi_variant" value="$(arg mi_variant)" />
+        <param name="max_depth" value="$(arg max_depth)" />
+        <param name="samples_per_src" value="$(arg samples_per_src)" />
+        <param name="max_num_paths_per_src" value="$(arg max_num_paths_per_src)" />
+        <param name="synthetic_array" value="$(arg synthetic_array)" />
+
+        <!-- Preview rendering -->
+        <param name="enable_preview_render" value="$(arg enable_preview_render)" />
+        <param name="preview_output_dir" value="$(arg preview_output_dir)" />
+        <param name="preview_width" value="$(arg preview_width)" />
+        <param name="preview_height" value="$(arg preview_height)" />
+        <param name="preview_show_devices" value="$(arg preview_show_devices)" />
+        <param name="preview_show_orientations" value="$(arg preview_show_orientations)" />
+        <param name="preview_camera_follow_y_offset_m" value="$(arg preview_camera_follow_y_offset_m)" />
+        <param name="preview_camera_height_offset_m" value="$(arg preview_camera_height_offset_m)" />
+    </node>
+</launch>

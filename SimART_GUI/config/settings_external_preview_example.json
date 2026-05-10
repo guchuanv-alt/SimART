@@ -1,0 +1,73 @@
+{
+  "SettingsVersion": 1.2,
+  "SimMode": "Multirotor",
+  "Vehicles": {
+    "PX4": {
+      "VehicleType": "PX4Multirotor",
+      "Cameras": {
+        "CameraImage": {
+          "CaptureSettings": [
+            {
+              "ImageType": 0,
+              "Width": 1920,
+              "Height": 1080,
+              "FOV_Degrees": 90
+            }
+          ],
+          "X": 0.5, "Y": 0, "Z": 0,
+          "Pitch": 0, "Roll": 0, "Yaw": 0
+        }
+      }
+    }
+  },
+  "ExternalCameras": {
+    "GuiPreview": {
+      "CaptureSettings": [
+        {
+          "ImageType": 0,
+          "Width": 1920,
+          "Height": 1080,
+          "FOV_Degrees": 90
+        }
+      ],
+      "X": -8.0, "Y": 0.0, "Z": -2.0,
+      "Pitch": 10, "Roll": 0, "Yaw": 0
+    },
+    "bs_alpha_camera": {
+      "CaptureSettings": [
+        {
+          "ImageType": 0,
+          "Width": 1920,
+          "Height": 1080,
+          "FOV_Degrees": 90
+        }
+      ],
+      "X": 0.0, "Y": 0.0, "Z": -22.0,
+      "Pitch": 0, "Roll": 0, "Yaw": 0
+    },
+    "bs_bravo_camera": {
+      "CaptureSettings": [
+        {
+          "ImageType": 0,
+          "Width": 1920,
+          "Height": 1080,
+          "FOV_Degrees": 90
+        }
+      ],
+      "X": 55.0, "Y": -35.0, "Z": -18.0,
+      "Pitch": 0, "Roll": 0, "Yaw": 0
+    },
+    "bs_charlie_camera": {
+      "CaptureSettings": [
+        {
+          "ImageType": 0,
+          "Width": 1920,
+          "Height": 1080,
+          "FOV_Degrees": 90
+        }
+      ],
+      "X": -60.0, "Y": 45.0, "Z": -20.0,
+      "Pitch": 0, "Roll": 0, "Yaw": 0
+    }
+  }
+}
