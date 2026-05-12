@@ -108,3 +108,5 @@ Open the required script in Blender's `Scripting` workspace and run it as needed
 - [replace_selected_material.py](blender_scripts/replace_selected_material.py): replace all material slots of selected objects with `itu_concrete`.
 - [mesh_statistics_report.py](blender_scripts/mesh_statistics_report.py): generate a mesh statistics report for the scene.
 - [clean_invalid_normals.py](blender_scripts/clean_invalid_normals.py): clean invalid normals and degenerate mesh data where possible.
+
+#### After your UE4 project, fbx/glb maps are ready, you can head to [Use SimART with Your Own Maps](../Usage/Usage.md) for the next step.

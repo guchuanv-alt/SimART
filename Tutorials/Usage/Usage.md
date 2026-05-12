@@ -1,6 +1,6 @@
 [中文](Usage.zh-CN.md) | English
 
-# Usage
+# Usage of SimART
 
 ## 1. Load visual scene map
 

@@ -25,20 +25,26 @@ The project is designed for UAV communication research, digital-twin wireless si
       <img src="Tutorials/images/drone_view.gif" alt="UAV view and ray tracing visualization" width="100%">
     </td>
     <td align="center" width="33%">
-      <img src="Tutorials/images/基站.gif" alt="Base-station layout and preview" width="100%">
+      <img src="Tutorials/images/base_station.gif" alt="Base-station layout and preview" width="100%">
     </td>
   </tr>
   <tr>
     <td align="center">Main Simulation Interface</td>
     <td align="center">UAV and Ray Visualization</td>
-    <td align="center">Base-Station Layout</td>
+    <td align="center">Base-Station Perspective</td>
   </tr>
 </table>
 
-- [Create your own maps](Tutorials/CreateMap/CreateMap.md)
+### The following brings you a quick start. For other tutorials, click here:
+
+- [Create Your Own Maps](Tutorials/CreateMap/CreateMap.md)
+
+- [Use SimART with Your Own Maps](Tutorials/Usage/Usage.md)
 
 
-## Build and Compile Method
+## Quick Start
+
+### Building and Compiling
 
 This project is a ROS1 catkin workspace package set. The repository should be
 placed under a catkin workspace, for example:
@@ -184,12 +190,12 @@ You can also export the AirSim path before building:
 export AIRSIM_CLIENT_ROOT=/path/to/your/AirSim
 catkin build airsim_gui_UErealtime --cmake-args -DAIRSIM_GUI_ENABLE_AIRSIM=ON
 ```
-
-## Quick Start After Compiling
+---
+### Try SimART
 
 4 sample maps and 1 sample rosbag for one of them are provided. The map BigCitySample can be used for a quick start while the rest can be used for further exploration.
 
-### 1. Download the Sample Maps and Rosbags
+### 5. Download the Sample Maps and Rosbags
 
 In the root directory of the repository you just cloned, run:
 
@@ -207,7 +213,7 @@ chmod +x download_sample_rosbags.sh
 
 The folder SimART_sample_maps contains 4 sample maps. The folder SimART_sample_rosbags contains 1 rosbag for the map BigCitySample.
 
-### 2. Load the Config File in SimART and Start the Simulation
+### 6. Load the Config File in SimART and Start the Simulation
 
 Run SimART by using the command:
 
@@ -223,6 +229,6 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 - Click "Start Simulation" to start sionna simulation. Rf, sys and beam simulation will all be started. The data can be viewd at Wireless Data and Sionna SYS panels. The raw data can be obtained in rostopics.
 
-### 3. Further Exploration
+### 7. Further Exploration
 
-The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc. The reqiured output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow xxx.
+The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The reqiured output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).

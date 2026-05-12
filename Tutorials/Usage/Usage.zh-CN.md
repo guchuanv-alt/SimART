@@ -1,6 +1,6 @@
 中文 | [English](Usage.md)
 
-# 使用说明
+# 使用SimART
 
 ## 1. 加载可视化场景地图
 
