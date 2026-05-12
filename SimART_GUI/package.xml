@@ -9,6 +9,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>qtbase5-dev</depend>
+  <depend>qtdeclarative5-dev</depend>
+  <depend>libqt5-opengl-dev</depend>
+  <depend>libvtk</depend>
+  <depend>assimp-dev</depend>
+  <exec_depend>qml-module-qtquick2</exec_depend>
+
   <depend>roscpp</depend>
   <depend>roslib</depend>
   <depend>tf</depend>
