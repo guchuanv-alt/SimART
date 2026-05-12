@@ -125,8 +125,7 @@ python3 -m pip install --upgrade pip
 python3 -m pip install -r ~/catkin_ws/src/SimART/requirements.txt
 ```
 
-Note: `requirements.txt` only installs Python packages. ROS, Qt, VTK, Assimp,
-and compiler dependencies must be installed with `apt` and `rosdep`.
+`requirements.txt` includes sionna. You can also refer to [Sionna](https://github.com/NVlabs/sionna.git) to install it.
 
 ### 3. Build the Default GUI
 
