@@ -1,4 +1,4 @@
-[Chinese](CreateMap.zh-CN.md) | English
+[中文](CreateMap.zh-CN.md) | English
 
 # Create Map Guide
 
