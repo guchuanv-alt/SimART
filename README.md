@@ -30,7 +30,7 @@ The project is designed for UAV communication research, digital-twin wireless si
   </tr>
   <tr>
     <td align="center">Main Simulation Interface</td>
-    <td align="center">UAV and Ray Visualization</td>
+    <td align="center">UAV Perspective</td>
     <td align="center">Base-Station Perspective</td>
   </tr>
 </table>
