@@ -152,7 +152,7 @@ The following brings you a quick start. For other tutorials, click here:
 
 ### Building and Compiling
 
-This project is a ROS1 catkin workspace package set. The repository should be
+This project is a ROS1 catkin workspace package set and was tested under `Ubuntu 20.04 + ROS Noetic`. So we recommend you to work under the same version. The repository should be
 placed under a catkin workspace, for example:
 
 ```bash
@@ -338,7 +338,7 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 ### 7. Further Exploration
 
-The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The required output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).
+The rest of the maps should work with a UAV simulation software, e.g., AirSim (Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The required output of the UAV simulation software is a rostopic containing the pose of the UAV (data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).
 
 ---
 
