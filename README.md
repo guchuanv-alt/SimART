@@ -332,9 +332,9 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 ```
 
 - In SimART, click "Open Existing Config", select BigCitySample->BigCitySample.agcfg in the downloaded sample maps.
-- Then click "Simulation Settings", and select a python environment with Sionna installed in python environment box.
+- Then click "Simulation Settings", and select a Python environment with Sionna installed in the Python environment box.
 - Click "Open Rosbag Tools", select the downloaded sample rosbag in Replay panel. Click "Start Playback".
-- Click "Start Simulation" to start Sionna simulation. RF, sys and beam simulation will all be started. The data can be viewed at Wireless Data and Sionna SYS panels. The raw data can be obtained in rostopics.
+- Click "Start Simulation" to start the Sionna simulation. RF, SYS, and beam simulation will all be started. The data can be viewed in the Wireless Data and Sionna SYS panels. The raw data is available on ROS topics and can be inspected with the `rostopic` CLI.
 
 ### 7. Further Exploration
 
