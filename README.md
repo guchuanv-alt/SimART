@@ -7,17 +7,11 @@
 <p><strong>An open-source software platform for UAV wireless communication and sensing simulation.</strong></p>
 
 <p>
-  <img alt="ROS1" src="https://img.shields.io/badge/ROS1-Noetic-22314E?style=for-the-badge&logo=ros&logoColor=white">
-  <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-Qt%2FVTK-00599C?style=for-the-badge&logo=cplusplus&logoColor=white">
-  <img alt="Python" src="https://img.shields.io/badge/Python-Sionna-3776AB?style=for-the-badge&logo=python&logoColor=white">
-  <img alt="AirSim" src="https://img.shields.io/badge/AirSim-Unreal%20Engine-0E1128?style=for-the-badge&logo=unrealengine&logoColor=white">
-  <img alt="6G ISAC" src="https://img.shields.io/badge/6G-ISAC-6B4EFF?style=for-the-badge">
-  <img alt="CKM" src="https://img.shields.io/badge/CKM-Generation-0F766E?style=for-the-badge">
-</p>
-
-<p>
   <a href="https://arxiv.org/abs/2605.13309">
     <img alt="arXiv" src="https://img.shields.io/badge/arXiv-2605.13309-B31B1B?style=for-the-badge">
+  </a>
+  <a href="https://kangyan.lat/simart/">
+    <img alt="Project Page" src="https://img.shields.io/badge/Project-Page-0F766E?style=for-the-badge">
   </a>
 </p>
 
