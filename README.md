@@ -1,18 +1,126 @@
-# SimART
+<div align="center">
+
+<h1>SimART</h1>
+
+<p><strong>An open-source software platform for UAV wireless communication and sensing simulation.</strong></p>
+
+<p>
+  <img alt="ROS1" src="https://img.shields.io/badge/ROS1-Noetic-22314E?style=for-the-badge&logo=ros&logoColor=white">
+  <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-Qt%2FVTK-00599C?style=for-the-badge&logo=cplusplus&logoColor=white">
+  <img alt="Python" src="https://img.shields.io/badge/Python-Sionna-3776AB?style=for-the-badge&logo=python&logoColor=white">
+  <img alt="AirSim" src="https://img.shields.io/badge/AirSim-Unreal%20Engine-0E1128?style=for-the-badge&logo=unrealengine&logoColor=white">
+  <img alt="6G ISAC" src="https://img.shields.io/badge/6G-ISAC-6B4EFF?style=for-the-badge">
+  <img alt="CKM" src="https://img.shields.io/badge/CKM-Generation-0F766E?style=for-the-badge">
+</p>
+
+<p>
+  <a href="https://arxiv.org/abs/2605.13309">
+    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-2605.13309-B31B1B?style=for-the-badge">
+  </a>
+</p>
+
+</div>
+
+---
 
 SimART is an open-source software platform for UAV wireless communication and sensing simulation. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize UAV trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
 
 The project is designed for UAV communication research, digital-twin wireless simulation, visual network planning, Sionna simulation data collection, and communication-sensing experiments in AirSim/Unreal Engine environments.
 
+## Contents
+
+- [System Architecture](#system-architecture)
+- [Scene Construction and Map Adaptation](#scene-construction-and-map-adaptation)
+- [Multimodal Data and CKM](#multimodal-data-and-ckm)
+- [Key Features](#key-features)
+- [Preview](#preview)
+- [Tutorials](#tutorials)
+- [Quick Start](#quick-start)
+- [Try SimART](#try-simart)
+- [Further Exploration](#7-further-exploration)
+
+## System Architecture
+
+<p align="center">
+  <img src="Tutorials/images/system_architecture.png" alt="SimART system architecture" width="100%">
+</p>
+
+SimART consists of four functional modules coordinated by ROS:
+
+| Module | Role |
+| --- | --- |
+| Physics and Sensing Module | Provides platform motion, RGB/depth/semantic cameras, LiDAR, IMU, GPS, and ground-truth poses through ROS-compatible simulators such as AirSim, Gazebo, Isaac Sim, or CARLA. |
+| Ray Tracing Module | Uses Sionna RT to compute site-specific propagation paths, delays, angles, Doppler shifts, interaction points, and channel impulse responses. |
+| Link and System Module | Uses Sionna SYS to evaluate OFDM, PHY/MAC behavior, multi-antenna links, beamforming codebooks, SINR, BLER, achievable rate, and optimal beam index. |
+| CKM Generator | Scans dense receiver grids to generate multi-layer channel knowledge maps for path loss, delay/angular spread, SINR, rate, and beam-selection priors. |
+
+The ray tracing module supports online simulation, offline rosbag replay, and dense grid scan modes. This allows users to visualize propagation during a live session, reproduce experiments from recorded trajectories, or generate CKM layers over a region of interest.
+
+## Scene Construction and Map Adaptation
+
+SimART provides two complementary scene construction pipelines. Both produce a high-fidelity visual scene for physics/sensing and a simplified, material-aware scene for ray tracing, while preserving a shared coordinate frame.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="Tutorials/images/louvre_map_pipeline.png" alt="Real-world OpenStreetMap based scene construction pipeline" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Real-world map adaptation: OpenStreetMap data are converted into aligned visual and ray-tracing assets.</sub></td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="Tutorials/images/roadrunner_map_pipeline.png" alt="User-defined RoadRunner scene construction pipeline" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>User-defined scene interface: RoadRunner or Unreal Engine scenes are simplified into propagation-ready meshes.</sub></td>
+  </tr>
+</table>
+
+| Pipeline | Workflow |
+| --- | --- |
+| Real-world map adaptation | OpenStreetMap extracts provide building footprints, heights, roads, and land-use polygons. OSM2World creates the visual asset for Unreal Engine/AirSim, while Blender exports a Mitsuba/Sionna RT scene with electromagnetic material annotations. |
+| User-defined scene interface | RoadRunner, Unreal Engine, or other custom scene assets are imported for physics and sensing. A Blender conversion script removes fine visual details, applies mesh decimation, preserves dominant facades and ground planes, and assigns Sionna RT materials. |
+
+## Multimodal Data and CKM
+
+During a simulation session, every module publishes data under the shared ROS clock. A single rosbag can preserve the complete synchronized session for replay, inspection, dataset export, and downstream learning tasks.
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="Tutorials/images/multimodal_uav_sensor_streams.png" alt="Multimodal UAV sensor streams" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <img src="Tutorials/images/multimodal_ckm_layers.png" alt="Dense CKM layers generated by SimART" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Multimodal sensor streams: RGB, depth, LiDAR, and semantic segmentation.</sub></td>
+    <td align="center"><sub>Dense CKM layers: path loss, received power, best BS rate, and effective SINR.</sub></td>
+  </tr>
+</table>
+
+| Data Stream | Examples |
+| --- | --- |
+| Sensing and mobility | RGB images, depth images, semantic images, LiDAR point clouds, IMU, GPS, ground-truth poses, and navigation messages. |
+| Wireless channel | Per-link CIRs, propagation paths, path loss, delays, angles of arrival/departure, Doppler, and interaction points. |
+| Link/system KPIs | SINR, BLER, achievable rate, PHY/MAC outputs, and optimal beam index from a configured codebook. |
+| CKM layers | Path loss, RMS delay spread, angular spread, average SINR, achievable rate, and beam-selection priors over dense spatial grids. |
+
 ## Key Features
 
-- 3D scene loading and preview: Load local scene meshes in the GUI to inspect maps, UAV trajectories, base stations, and ray paths.
-- Sionna wireless simulation: Run ray tracing, OFDM/SYS link adaptation, and beam codebook selection from exported Mitsuba/XML scenes.
-- ROS1 data-stream integration: Subscribe to UAV pose topics and publish RF, SYS, beam, codebook, and related simulation observations.
-- AirSim/UE live integration: Display UAVs, trajectories, base stations, and rays directly in Unreal Engine scenes, with support for base-station camera previews.
-- Base-station editing and configuration: Add, select, edit, save, and load base-station JSON configurations from the GUI.
-- Rosbag tools: Record, replay, and re-simulate wireless data for offline analysis and dataset generation.
-- Coordinate-frame configuration: Configure transforms among the ROS frame, 3D scene frame, and AirSim frame.
+| Capability | Description |
+| --- | --- |
+| 3D scene loading and preview | Load local scene meshes in the GUI to inspect maps, UAV trajectories, base stations, and ray paths. |
+| Sionna wireless simulation | Run ray tracing, OFDM/SYS link adaptation, and beam codebook selection from exported Mitsuba/XML scenes. |
+| ROS1 data-stream integration | Subscribe to UAV pose topics and publish RF, SYS, beam, codebook, and related simulation observations. |
+| AirSim/UE live integration | Display UAVs, trajectories, base stations, and rays directly in Unreal Engine scenes, with support for base-station camera previews. |
+| Base-station editing and configuration | Add, select, edit, save, and load base-station JSON configurations from the GUI. |
+| Rosbag tools | Record, replay, and re-simulate wireless data for offline analysis and dataset generation. |
+| Coordinate-frame configuration | Configure transforms among the ROS frame, 3D scene frame, and AirSim frame. |
 
 ## Preview
 
@@ -29,18 +137,20 @@ The project is designed for UAV communication research, digital-twin wireless si
     </td>
   </tr>
   <tr>
-    <td align="center">Main Simulation Interface</td>
-    <td align="center">UAV Perspective</td>
-    <td align="center">Base-Station Perspective</td>
+    <td align="center"><sub>Main Simulation Interface</sub></td>
+    <td align="center"><sub>UAV Perspective</sub></td>
+    <td align="center"><sub>Base-Station Perspective</sub></td>
   </tr>
 </table>
 
-### The following brings you a quick start. For other tutorials, click here:
+## Tutorials
 
-- [Create Your Own Maps](Tutorials/CreateMap/CreateMap.md)
+The following brings you a quick start. For other tutorials, click here:
 
-- [Use SimART with Your Own Maps](Tutorials/Usage/Usage.md)
-
+| Tutorial | Link |
+| --- | --- |
+| Create Your Own Maps | [Tutorials/CreateMap/CreateMap.md](Tutorials/CreateMap/CreateMap.md) |
+| Use SimART with Your Own Maps | [Tutorials/Usage/Usage.md](Tutorials/Usage/Usage.md) |
 
 ## Quick Start
 
@@ -57,10 +167,12 @@ git clone https://github.com/guchuanv-alt/SimART.git
 
 The repository contains these catkin packages:
 
-- `airsim_gui_UErealtime`: the C++/Qt/VTK GUI package
-- `rf_msgs`: RF observation message definitions
-- `sionna_sys_msgs`: Sionna SYS message definitions
-- `sionna_beam_msgs`: Sionna beam/codebook message definitions
+| Package | Description |
+| --- | --- |
+| `airsim_gui_UErealtime` | the C++/Qt/VTK GUI package |
+| `rf_msgs` | RF observation message definitions |
+| `sionna_sys_msgs` | Sionna SYS message definitions |
+| `sionna_beam_msgs` | Sionna beam/codebook message definitions |
 
 ### 1. System and ROS Dependencies
 
@@ -163,6 +275,7 @@ C++ SDK. Enable AirSim C++ support only when you need UE live-view integration(T
 
 First make sure AirSim has been cloned and built, including its RPC library.
 Then rebuild the catkin workspace with(Remember to replace /path/to/your/AirSim with your actual AirSim path)
+
 ```bash
 cd ~/catkin_ws
 source /opt/ros/noetic/setup.bash
@@ -189,8 +302,10 @@ You can also export the AirSim path before building:
 export AIRSIM_CLIENT_ROOT=/path/to/your/AirSim
 catkin build airsim_gui_UErealtime --cmake-args -DAIRSIM_GUI_ENABLE_AIRSIM=ON
 ```
+
 ---
-### Try SimART
+
+## Try SimART
 
 4 sample maps and 1 sample rosbag for one of them are provided. The map BigCitySample can be used for a quick start while the rest can be used for further exploration.
 
@@ -221,13 +336,10 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 ```
 
 - In SimART, click "Open Existing Config", select BigCitySample->BigCitySample.agcfg in the downloaded sample maps.
-
-- Then click "Simulation Settings", and select a python environment with sionna installed in python environment box.
-
+- Then click "Simulation Settings", and select a python environment with Sionna installed in python environment box.
 - Click "Open Rosbag Tools", select the downloaded sample rosbag in Replay panel. Click "Start Playback".
-
-- Click "Start Simulation" to start sionna simulation. Rf, sys and beam simulation will all be started. The data can be viewd at Wireless Data and Sionna SYS panels. The raw data can be obtained in rostopics.
+- Click "Start Simulation" to start Sionna simulation. RF, sys and beam simulation will all be started. The data can be viewed at Wireless Data and Sionna SYS panels. The raw data can be obtained in rostopics.
 
 ### 7. Further Exploration
 
-The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The reqiured output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).
+The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The required output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).
