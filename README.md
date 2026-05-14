@@ -343,3 +343,24 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 ### 7. Further Exploration
 
 The rest of the maps should work with a UAV simulation software, e.g., AirSim(Recommended), Gazebo, etc, and a matched map (Take AirSim for instance, a corresponding Unreal Engine project is required). The required output of the UAV simulation software is a rostopic containing the pose of the UAV(data type is nav_msgs/Odometry or geometry_msgs/PoseStamped). If you decide to use AirSim, please follow [Create your own maps](Tutorials/CreateMap/CreateMap.md).
+
+---
+
+## Contact
+
+For questions, feedback, or collaboration, please contact us at kangyan@std.uestc.edu.cn, yuqicao@std.uestc.edu.cn.
+
+---
+
+## Citation
+
+If you use SimART in your research, please cite our paper:
+
+```bibtex
+@article{yan2026simart,
+  title={SimART: A Unified and Open Real-world Multimodal Simulation Platform for 6G Integrated Sensing and Communication},
+  author={Yan, Kang and Cao, Yuqi and Li, Jiaqi and Xiang, Luping and Yang, Kun},
+  journal={arXiv preprint arXiv:2605.13309},
+  year={2026}
+}
+```
