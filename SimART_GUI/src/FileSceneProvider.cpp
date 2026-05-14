@@ -399,14 +399,18 @@ SceneGeometryBundle FileSceneProvider::loadMeshFile(const QString& filePath) {
     }
 
     Assimp::Importer importer;
-    const unsigned int flags = aiProcess_Triangulate |
-                               aiProcess_JoinIdenticalVertices |
-                               aiProcess_ImproveCacheLocality |
-                               aiProcess_SortByPType |
-                               aiProcess_GenSmoothNormals |
-                               aiProcess_RemoveRedundantMaterials |
-                               aiProcess_ValidateDataStructure |
-                               aiProcess_FlipUVs;
+    const QString suffix = info.suffix().toLower();
+    const bool isGltf = suffix == QStringLiteral("gltf") || suffix == QStringLiteral("glb");
+    unsigned int flags = aiProcess_Triangulate |
+                         aiProcess_JoinIdenticalVertices |
+                         aiProcess_ImproveCacheLocality |
+                         aiProcess_SortByPType |
+                         aiProcess_GenSmoothNormals |
+                         aiProcess_RemoveRedundantMaterials |
+                         aiProcess_ValidateDataStructure;
+    if (!isGltf) {
+        flags |= aiProcess_FlipUVs;
+    }
 
     const aiScene* scene = importer.ReadFile(filePath.toStdString(), flags);
     if (!scene || !scene->mRootNode) {
@@ -419,7 +423,7 @@ SceneGeometryBundle FileSceneProvider::loadMeshFile(const QString& filePath) {
     bundle.sourcePath = info.absoluteFilePath();
 
     appendMesh(scene, scene->mRootNode, aiMatrix4x4(), info, &bundle);
-    if (usesGltfCoordinateConversion(info.suffix().toLower())) {
+    if (isGltf) {
         applyGltfCoordinateConversion(&bundle);
     }
     mergeMeshesByMaterial(&bundle);
