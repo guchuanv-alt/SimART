@@ -1,0 +1,29 @@
+<svg width="720" height="170" viewBox="0 0 720 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">SimART</title>
+  <desc id="desc">SimART project wordmark</desc>
+  <defs>
+    <linearGradient id="simartGradient" x1="120" y1="30" x2="610" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F766E"/>
+      <stop offset="0.48" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <filter id="softShadow" x="80" y="0" width="560" height="150" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect x="92" y="124" width="536" height="6" rx="3" fill="url(#simartGradient)" opacity="0.22"/>
+  <path d="M150 138H570" stroke="url(#simartGradient)" stroke-width="3" stroke-linecap="round"/>
+  <text
+    x="360"
+    y="106"
+    text-anchor="middle"
+    fill="url(#simartGradient)"
+    filter="url(#softShadow)"
+    font-family="Avenir Next, Segoe UI, Helvetica, Arial, sans-serif"
+    font-size="92"
+    font-weight="800"
+    letter-spacing="7">
+    SimART
+  </text>
+</svg>

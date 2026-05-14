@@ -1,6 +1,8 @@
 <div align="center">
 
-<h1>SimART</h1>
+<p>
+  <img src="Tutorials/images/simart_wordmark.svg" alt="SimART" width="420">
+</p>
 
 <p><strong>An open-source software platform for UAV wireless communication and sensing simulation.</strong></p>
 
