@@ -1,0 +1,26 @@
+<launch>
+	<arg name="output" default="screen"/>
+	<arg name="publish_clock" default="true"/>
+	<arg name="is_vulkan" default="true"/>
+	<arg name="host" default="localhost" />
+	<arg name="update_imu_every_n_sec" default="0.00625" />
+
+	<node name="airsim_node" pkg="airsim_ros_pkgs_sa" type="airsim_node_ex" output="$(arg output)">
+		<param name="is_vulkan" type="bool" value="$(arg is_vulkan)" />
+		<param name="use_sim_time" value="true"/>
+		<!-- ROS timer rates. Note that timer callback will be processed at maximum possible rate, upperbounded by the following ROS params -->
+		<param name="update_airsim_img_response_every_n_sec" type="double" value="0.01" /> 
+		<param name="update_airsim_control_every_n_sec" type="double" value="0.01" />
+		<param name="update_lidar_every_n_sec" type="double" value="0.1" />
+		<param name="update_imu_every_n_sec" type="double" value="$(arg update_imu_every_n_sec)" />
+		<param name="publish_clock" type="bool" value="$(arg publish_clock)" />
+		<param name="host_ip" type="string" value="$(arg host)" />
+		<!--这里是开启lidar的pointcloud消息格式的话题输出功能-->
+		<param name="publish_lidar" value="false"/>
+		<param name="publish_lidar_pointcloud" value="false"/>
+
+	</node>
+
+	<!-- Static transforms -->
+	<include file="$(find airsim_ros_pkgs_sa)/launch/static_transforms.launch"/>
+</launch>
