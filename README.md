@@ -33,7 +33,8 @@ The project is designed for UAV communication research, digital-twin wireless si
 - [Tutorials](#tutorials)
 - [Quick Start](#quick-start)
 - [Try SimART](#try-simart)
-- [Further Exploration](#7-further-exploration)
+- [Use SimART with UE4 and AirSim](#use-simart-with-ue4-and-airsim)
+- [Further Exploration](#8-further-exploration)
 
 ## System Architecture
 
@@ -152,8 +153,9 @@ The following brings you a quick start. For other tutorials, click here:
 
 ### Building and Compiling
 
-This project is a ROS1 catkin workspace package set and was tested under `Ubuntu 20.04 + ROS Noetic`. So we recommend you to work under the same version. The repository should be
-placed under a catkin workspace, for example:
+This project is a ROS 1 catkin workspace package set and was tested under
+`Ubuntu 20.04 + ROS 1 Noetic`. We recommend working with the same environment.
+The repository should be placed under a catkin workspace, for example:
 
 ```bash
 mkdir -p ~/catkin_ws/src
@@ -172,9 +174,17 @@ The repository contains these catkin packages:
 
 ### 1. System and ROS Dependencies
 
-Install ROS1 first. The commands below assume Ubuntu with ROS Noetic. If you
-use another ROS1 distribution, replace `noetic` with your own ROS distribution
-name, or use `$ROS_DISTRO` after sourcing ROS.
+Install ROS 1 Noetic for Ubuntu 20.04 first.
+
+For a new Ubuntu machine, we recommend installing ROS with the FishROS
+installer: <https://github.com/fishros/install>
+
+```bash
+wget http://fishros.com/install -O fishros && bash fishros
+```
+
+After ROS 1 Noetic is installed, source the ROS environment and install the
+remaining system dependencies:
 
 ```bash
 source /opt/ros/noetic/setup.bash
@@ -216,36 +226,22 @@ listed so a new machine has the core tools before running `rosdep`.
 
 ### 2. Python Dependencies
 
-Python packages can be installed from `requirements.txt`:
+We recommend installing the Python dependencies with conda. The tested conda
+environment is named `SimART` and uses Python 3.12:
 
 ```bash
 cd ~/catkin_ws/src/SimART
-python3 -m pip install --user -r requirements.txt
-```
-
-If you prefer a virtual environment for Sionna or beam-selection tools, create
-it with access to ROS Python packages:
-
-```bash
-python3 -m venv --system-site-packages ~/.venvs/simart
-source ~/.venvs/simart/bin/activate
-python3 -m pip install --upgrade pip
-python3 -m pip install -r ~/catkin_ws/src/SimART/requirements.txt
+conda create -n SimART python=3.12
+conda activate SimART
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 `requirements.txt` includes sionna. You can also refer to [Sionna](https://github.com/NVlabs/sionna.git) to install it.
 
 ### 3. Build the Default GUI
 
-The default build does not require the AirSim C++ SDK.
-
-Use one catkin build tool consistently in the same workspace. Do not switch
-between `catkin_make` and `catkin build` without cleaning `build/` and `devel/`,
-because their build spaces are not compatible.
-
-#### Recommended: `catkin build`
-
-`catkin build` is convenient for this repository because it can build the GUI package and its local message-package dependencies together. For the first time you build, run:
+Build the default GUI with `catkin build`:
 
 ```bash
 cd ~/catkin_ws
@@ -256,22 +252,89 @@ catkin build airsim_gui_UErealtime
 source devel/setup.bash
 ```
 
-catkin_make is also fine to build.
-
-After a successful build, run SimART with:
+Run SimART:
 
 ```bash
 rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 ```
 
-### 4. Download and Compile Unreal Engine
+## Try SimART
+
+4 sample maps and 1 sample rosbag for one of them are provided. The sample
+rosbag already contains the UAV pose data recorded from AirSim, so it can be
+used directly for simulation without installing AirSim first. The map
+BigCitySample can be used for a quick start while the rest can be used for
+further exploration.
+
+### 4. Download the Sample Maps and Rosbags
+
+In the root directory of the repository you just cloned, run:
+
+```bash
+cd ~/catkin_ws/src/SimART
+chmod +x download_sample_maps.sh
+./download_sample_maps.sh
+```
+
+and:
+
+```bash
+cd ~/catkin_ws/src/SimART
+chmod +x download_sample_rosbags.sh
+./download_sample_rosbags.sh
+```
+
+The folder SimART_sample_maps contains 4 sample maps.<br>
+The folder SimART_sample_rosbags contains 1 rosbag for the map BigCitySample.
+
+### 5. Load the Config File in SimART and Start the Simulation
+
+Run SimART by using the command:
+
+```bash
+rosrun airsim_gui_UErealtime airsim_gui_UErealtime
+```
+
+- In SimART, click "Open Existing Config" and select `~/catkin_ws/src/SimART/SimART_sample_maps/BigCitySample/BigCitySample.agcfg`.
+- Click "Simulation Settings", select the `SimART` conda environment in the Python environment field, and click "Test Environment".
+
+<p align="center">
+  <img src="Tutorials/images/SwitchPythonEnv.png" alt="Select the SimART Python environment in Simulation Settings" width="100%">
+</p>
+
+- Click "Open Rosbag Tools", select the downloaded sample rosbag in Replay panel. Click "Start Playback".
+
+<p align="center">
+  <img src="Tutorials/images/OpenRosbag.png" alt="Open the sample rosbag in Rosbag Tools" width="100%">
+</p>
+
+- Click "Start Simulation" to start the Sionna simulation. RF, SYS, and beam simulation will all be started. The data can be viewed in the Wireless Data and Sionna SYS panels. The raw data is available on ROS topics and can be inspected with the `rostopic` CLI.
+
+<p align="center">
+  <img src="Tutorials/images/StartSim.png" alt="Start the Sionna simulation in SimART" width="100%">
+</p>
+
+<p align="center">
+  <img src="Tutorials/images/WirelessData.png" alt="Wireless Data panel in SimART" width="100%">
+</p>
+
+<p align="center">
+  <img src="Tutorials/images/SionnaSYSData.png" alt="Sionna SYS panel in SimART" width="100%">
+</p>
+
+## Use SimART with UE4 and AirSim
+
+If you need to view the scene in UE4 or customize UAV flight, follow the steps
+below to set up Unreal Engine and AirSim.
+
+### 6. Download and Compile Unreal Engine
 
 Clone and build Unreal Engine 4 and AirSim. We recommend you to use Unreal Engine 4.27 version. You can refer to [Unreal Engine Documentation](https://dev.epicgames.com/documentation/unreal-engine/downloading-source-code-in-unreal-engine) and [AirSim](https://github.com/microsoft/AirSim.git). 
 
 Make sure that you can use AirSim to perform UAV simulations first. Then move the AirSim ros wrapper package to your AirSim path. In the root directory of the repository, run (Remember to replace the path/to/your/AirSim with your actual AirSim path):
 
 ```bash
-cp -r third_party/airsim_ros_pkgs_sa path/to/your/AirSim/ros/src
+cp -r ~/catkin_ws/src/SimART/third_party/airsim_ros_pkgs_sa path/to/your/AirSim/ros/src
 ```
 
 This will copy the modified AirSim ros wrapper package to the AirSim ros workspace. Then build the new AirSim ros wrapper in the root directory of the AirSim ros workspace:
@@ -283,10 +346,12 @@ catkin build
 
 When you use the new ros wrapper to publish the rostopics in AirSim, you can run:
 ```bash
-roslaunch airsim_ros_pkgs_sa airsim_node.launch is_vulkan:="false
+cd path/to/your/AirSim/ros
+source devel/setup.bash
+roslaunch airsim_ros_pkgs_sa airsim_node.launch is_vulkan:="false"
 ```
 
-### 5. Optional: Enable AirSim C++ Live View
+### 7. Enable UE Live View
 
 The normal build can load local meshes and use ROS topics without the AirSim
 C++ SDK. Enable AirSim C++ support only when you need UE live-view integration(The UE Live View panel).
@@ -303,7 +368,7 @@ catkin build airsim_gui_UErealtime --cmake-args \
 source devel/setup.bash
 ```
 
-With `catkin_make`, use:
+<!-- With `catkin_make`, use:
 
 ```bash
 cd ~/catkin_ws
@@ -319,44 +384,7 @@ You can also export the AirSim path before building:
 ```bash
 export AIRSIM_CLIENT_ROOT=/path/to/your/AirSim
 catkin build airsim_gui_UErealtime --cmake-args -DAIRSIM_GUI_ENABLE_AIRSIM=ON
-```
-
----
-
-## Try SimART
-
-4 sample maps and 1 sample rosbag for one of them are provided. The map BigCitySample can be used for a quick start while the rest can be used for further exploration.
-
-### 6. Download the Sample Maps and Rosbags
-
-In the root directory of the repository you just cloned, run:
-
-```bash
-chmod +x download_sample_maps.sh
-./download_sample_maps.sh
-```
-
-and:
-
-```bash
-chmod +x download_sample_rosbags.sh
-./download_sample_rosbags.sh
-```
-
-The folder SimART_sample_maps contains 4 sample maps. The folder SimART_sample_rosbags contains 1 rosbag for the map BigCitySample.
-
-### 7. Load the Config File in SimART and Start the Simulation
-
-Run SimART by using the command:
-
-```bash
-rosrun airsim_gui_UErealtime airsim_gui_UErealtime
-```
-
-- In SimART, click "Open Existing Config", select BigCitySample->BigCitySample.agcfg in the downloaded sample maps.
-- Then click "Simulation Settings", and select a Python environment with Sionna installed in the Python environment box.
-- Click "Open Rosbag Tools", select the downloaded sample rosbag in Replay panel. Click "Start Playback".
-- Click "Start Simulation" to start the Sionna simulation. RF, SYS, and beam simulation will all be started. The data can be viewed in the Wireless Data and Sionna SYS panels. The raw data is available on ROS topics and can be inspected with the `rostopic` CLI.
+``` -->
 
 ### 8. Further Exploration
 
