@@ -33,6 +33,7 @@ The project is designed for UAV communication research, digital-twin wireless si
 - [Tutorials](#tutorials)
 - [Quick Start](#quick-start)
 - [Try SimART](#try-simart)
+- [Use SimART with UE4 and AirSim](#use-simart-with-ue4-and-airsim)
 - [Further Exploration](#8-further-exploration)
 
 ## System Architecture
@@ -320,6 +321,11 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 <p align="center">
   <img src="Tutorials/images/SionnaSYSData.png" alt="Sionna SYS panel in SimART" width="100%">
 </p>
+
+## Use SimART with UE4 and AirSim
+
+If you need to view the scene in UE4 or customize UAV flight, follow the steps
+below to set up Unreal Engine and AirSim.
 
 ### 6. Download and Compile Unreal Engine
 
