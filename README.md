@@ -346,7 +346,9 @@ catkin build
 
 When you use the new ros wrapper to publish the rostopics in AirSim, you can run:
 ```bash
-roslaunch airsim_ros_pkgs_sa airsim_node.launch is_vulkan:="false
+cd path/to/your/AirSim/ros
+source devel/setup.bash
+roslaunch airsim_ros_pkgs_sa airsim_node.launch is_vulkan:="false"
 ```
 
 ### 7. Enable UE Live View
