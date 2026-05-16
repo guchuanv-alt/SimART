@@ -334,7 +334,7 @@ Clone and build Unreal Engine 4 and AirSim. We recommend you to use Unreal Engin
 Make sure that you can use AirSim to perform UAV simulations first. Then move the AirSim ros wrapper package to your AirSim path. In the root directory of the repository, run (Remember to replace the path/to/your/AirSim with your actual AirSim path):
 
 ```bash
-cp -r third_party/airsim_ros_pkgs_sa path/to/your/AirSim/ros/src
+cp -r ~/catkin_ws/src/SimART/third_party/airsim_ros_pkgs_sa path/to/your/AirSim/ros/src
 ```
 
 This will copy the modified AirSim ros wrapper package to the AirSim ros workspace. Then build the new AirSim ros wrapper in the root directory of the AirSim ros workspace:
@@ -349,7 +349,7 @@ When you use the new ros wrapper to publish the rostopics in AirSim, you can run
 roslaunch airsim_ros_pkgs_sa airsim_node.launch is_vulkan:="false
 ```
 
-### 7. Optional: Enable AirSim C++ Live View
+### 7. Enable UE Live View
 
 The normal build can load local meshes and use ROS topics without the AirSim
 C++ SDK. Enable AirSim C++ support only when you need UE live-view integration(The UE Live View panel).
@@ -366,7 +366,7 @@ catkin build airsim_gui_UErealtime --cmake-args \
 source devel/setup.bash
 ```
 
-With `catkin_make`, use:
+<!-- With `catkin_make`, use:
 
 ```bash
 cd ~/catkin_ws
@@ -382,7 +382,7 @@ You can also export the AirSim path before building:
 ```bash
 export AIRSIM_CLIENT_ROOT=/path/to/your/AirSim
 catkin build airsim_gui_UErealtime --cmake-args -DAIRSIM_GUI_ENABLE_AIRSIM=ON
-```
+``` -->
 
 ### 8. Further Exploration
 

@@ -17,7 +17,7 @@ The simulation scene XML is the XML file you exported from Blender, which is a s
 
 - ### SYS over RT
 
-If you want to run the simulation with an OFDM signal and want to acquire serving base stations and channel information, enable the check box of `Enable Sionna SYS link adaptation on top of RT` and fill the parameters or just use the default values. A rostopic named `sys_observations` will be shown.
+If you want to run Sionna SYS link adaptation on top of the RT results and obtain serving base-station and link/channel metrics, enable the check box of `Enable Sionna SYS link adaptation on top of RT` and fill the parameters or just use the default values. A rostopic named `sys_observations` will be shown.
 
 - ### Beamforming_Beam selection
 
@@ -49,7 +49,7 @@ The compulsury input topic for Sionna simulation is the UAV pose topic. After st
 
 ## 6. Start the sionna simulation
 
-Click `Connect ROS1`, and the simulation will be started. You can view it in the 3D view window.
+Click `Start Simulation`, and the simulation will be started. You can view it in the 3D view window.
 
 ## 7. UE Live view
 
@@ -65,7 +65,7 @@ Rosbags can also be recorded and replayed in the GUI. In `Rosbag Recording` wind
 
 Open the `Rosbag Tools` panel, a rosbag can be replayed. The names of the RF, SYS and beam topics in the rosbag should be given. The types of replayed topics can be assigned while the clock topic is recommended to be chosen. Click `Start Playbak` to replay the rosbag.
 
-If the rosbag contains any of the RF, SYS, beam and UAV pose topics, the RF, SYS or beam data in the rosbag will be played automatically. If none of the 3 kinds of the topics is contained but UAV pose topic is present, the UAV pose topic will be played and you can click `Connect ROS1` to start simulation based on the UAV positions in the rosbag.
+If the rosbag contains any of the RF, SYS, beam and UAV pose topics, the RF, SYS or beam data in the rosbag will be played automatically. If none of the 3 kinds of the topics is contained but UAV pose topic is present, the UAV pose topic will be played and you can click `Start Simulation` to start simulation based on the UAV positions in the rosbag.
 
 The re-sim wireless function provides an approach to add RF, SYS and beam topics into a rosbag without one or some of these topics, or to increase the frequency of the messages in those topics.
 
