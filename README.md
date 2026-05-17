@@ -4,14 +4,17 @@
   <img src="Tutorials/images/simart_wordmark.svg" alt="SimART" width="420">
 </p>
 
-<p><strong>An open-source software platform for UAV wireless communication and sensing simulation.</strong></p>
+<p><strong>An open-source software platform for all-scenario wireless communication and sensing research.</strong></p>
 
 <p>
   <a href="https://arxiv.org/abs/2605.13309">
-    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-2605.13309-B31B1B?style=for-the-badge">
+    <img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv%202605.13309-9F1239?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=0F172A">
   </a>
   <a href="https://kangyan.lat/simart/">
-    <img alt="Project Page" src="https://img.shields.io/badge/Project-Page-0F766E?style=for-the-badge">
+    <img alt="Homepage" src="https://img.shields.io/badge/Homepage-SimART-0E7490?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0F172A">
+  </a>
+  <a href="https://www.bilibili.com/video/BV12e5R6BEqV/">
+    <img alt="Demo Video" src="https://img.shields.io/badge/Demo-Bilibili-00A1D6?style=for-the-badge&logo=bilibili&logoColor=white&labelColor=0F172A">
   </a>
 </p>
 
@@ -19,9 +22,9 @@
 
 ---
 
-SimART is an open-source software platform for UAV wireless communication and sensing simulation. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize UAV trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
+SimART is an open-source software platform for all-scenario wireless communication and sensing research. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
 
-The project is designed for UAV communication research, digital-twin wireless simulation, visual network planning, Sionna simulation data collection, and communication-sensing experiments in AirSim/Unreal Engine environments.
+It supports digital-twin scene construction, ROS-based trajectory replay, Sionna data collection, visual network planning, and communication-sensing experiments with simulators such as AirSim and Unreal Engine.
 
 ## Contents
 
@@ -176,11 +179,16 @@ The repository contains these catkin packages:
 
 Install ROS 1 Noetic for Ubuntu 20.04 first.
 
-For a new Ubuntu machine, we recommend installing ROS with the FishROS
-installer: <https://github.com/fishros/install>
+We recommend following the official ROS Noetic installation instructions for
+Ubuntu 20.04:
+<http://wiki.ros.org/noetic/Installation/Ubuntu>
+
+If you prefer to use the third-party FishROS convenience installer, treat it
+as an optional alternative and use the HTTPS endpoint:
+<https://github.com/fishros/install>
 
 ```bash
-wget http://fishros.com/install -O fishros && bash fishros
+wget https://fishros.com/install -O fishros && bash fishros
 ```
 
 After ROS 1 Noetic is installed, source the ROS environment and install the
@@ -260,11 +268,11 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 ## Try SimART
 
-4 sample maps and 1 sample rosbag for one of them are provided. The sample
-rosbag already contains the UAV pose data recorded from AirSim, so it can be
-used directly for simulation without installing AirSim first. The map
-BigCitySample can be used for a quick start while the rest can be used for
-further exploration.
+4 sample maps and 1 sample rosbag for one of them are provided. The quick-start
+demo uses a UAV trajectory in BigCitySample. The sample rosbag already contains
+the UAV pose data recorded from AirSim, so it can be used directly for
+simulation without installing AirSim first. The rest of the maps can be used
+for further exploration.
 
 ### 4. Download the Sample Maps and Rosbags
 
@@ -320,6 +328,12 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 <p align="center">
   <img src="Tutorials/images/SionnaSYSData.png" alt="Sionna SYS panel in SimART" width="100%">
+</p>
+
+- You can also record the generated data after clicking "Start Simulation".
+
+<p align="center">
+  <img src="Tutorials/images/RecordingData.png" alt="Recording data in SimART" width="100%">
 </p>
 
 ## Use SimART with UE4 and AirSim
