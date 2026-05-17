@@ -179,11 +179,16 @@ The repository contains these catkin packages:
 
 Install ROS 1 Noetic for Ubuntu 20.04 first.
 
-For a new Ubuntu machine, we recommend installing ROS with the FishROS
-installer: <https://github.com/fishros/install>
+We recommend following the official ROS Noetic installation instructions for
+Ubuntu 20.04:
+<http://wiki.ros.org/noetic/Installation/Ubuntu>
+
+If you prefer to use the third-party FishROS convenience installer, treat it
+as an optional alternative and use the HTTPS endpoint:
+<https://github.com/fishros/install>
 
 ```bash
-wget http://fishros.com/install -O fishros && bash fishros
+wget https://fishros.com/install -O fishros && bash fishros
 ```
 
 After ROS 1 Noetic is installed, source the ROS environment and install the
