@@ -63,7 +63,7 @@ Select the base stations in `UE Live View` window, the image of the cameras of s
 
 Rosbags can also be recorded and replayed in the GUI. In `Rosbag Recording` window, a rosbag can be recorded by clicking `Start Recording` and output to the path you assigned.
 
-Open the `Rosbag Tools` panel, a rosbag can be replayed. The names of the RF, SYS and beam topics in the rosbag should be given. The types of replayed topics can be assigned while the clock topic is recommended to be chosen. Click `Start Playbak` to replay the rosbag.
+Open the `Rosbag Tools` panel, a rosbag can be replayed. The names of the RF, SYS and beam topics in the rosbag should be given. The types of replayed topics can be assigned while the clock topic is recommended to be chosen. Click `Start Playback` to replay the rosbag.
 
 If the rosbag contains any of the RF, SYS, beam and UAV pose topics, the RF, SYS or beam data in the rosbag will be played automatically. If none of the 3 kinds of the topics is contained but UAV pose topic is present, the UAV pose topic will be played and you can click `Start Simulation` to start simulation based on the UAV positions in the rosbag.
 
