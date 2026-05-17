@@ -8,10 +8,13 @@
 
 <p>
   <a href="https://arxiv.org/abs/2605.13309">
-    <img alt="arXiv" src="https://img.shields.io/badge/arXiv-2605.13309-B31B1B?style=for-the-badge">
+    <img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv%202605.13309-9F1239?style=for-the-badge&logo=arxiv&logoColor=white&labelColor=0F172A">
   </a>
   <a href="https://kangyan.lat/simart/">
-    <img alt="Project Page" src="https://img.shields.io/badge/Project-Page-0F766E?style=for-the-badge">
+    <img alt="Homepage" src="https://img.shields.io/badge/Homepage-SimART-0E7490?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0F172A">
+  </a>
+  <a href="https://www.bilibili.com/video/BV12e5R6BEqV/">
+    <img alt="Demo Video" src="https://img.shields.io/badge/Demo-Bilibili-00A1D6?style=for-the-badge&logo=bilibili&logoColor=white&labelColor=0F172A">
   </a>
 </p>
 
