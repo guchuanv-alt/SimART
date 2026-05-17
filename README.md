@@ -4,7 +4,7 @@
   <img src="Tutorials/images/simart_wordmark.svg" alt="SimART" width="420">
 </p>
 
-<p><strong>An open-source software platform for all-scenario wireless communication and sensing simulation.</strong></p>
+<p><strong>An open-source software platform for all-scenario wireless communication and sensing research.</strong></p>
 
 <p>
   <a href="https://arxiv.org/abs/2605.13309">
@@ -19,9 +19,9 @@
 
 ---
 
-SimART is an open-source software platform for all-scenario wireless communication and sensing simulation. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
+SimART is an open-source software platform for all-scenario wireless communication and sensing research. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
 
-The project is designed for UAV communication research, digital-twin wireless simulation, visual network planning, Sionna simulation data collection, and communication-sensing experiments in AirSim/Unreal Engine environments.
+It supports digital-twin scene construction, ROS-based trajectory replay, Sionna data collection, visual network planning, and communication-sensing experiments with simulators such as AirSim and Unreal Engine.
 
 ## Contents
 
@@ -260,11 +260,11 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 ## Try SimART
 
-4 sample maps and 1 sample rosbag for one of them are provided. The sample
-rosbag already contains the UAV pose data recorded from AirSim, so it can be
-used directly for simulation without installing AirSim first. The map
-BigCitySample can be used for a quick start while the rest can be used for
-further exploration.
+4 sample maps and 1 sample rosbag for one of them are provided. The quick-start
+demo uses a UAV trajectory in BigCitySample. The sample rosbag already contains
+the UAV pose data recorded from AirSim, so it can be used directly for
+simulation without installing AirSim first. The rest of the maps can be used
+for further exploration.
 
 ### 4. Download the Sample Maps and Rosbags
 
