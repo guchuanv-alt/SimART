@@ -4,7 +4,7 @@
   <img src="Tutorials/images/simart_wordmark.svg" alt="SimART" width="420">
 </p>
 
-<p><strong>An open-source software platform for UAV wireless communication and sensing simulation.</strong></p>
+<p><strong>An open-source software platform for all-scenario wireless communication and sensing simulation.</strong></p>
 
 <p>
   <a href="https://arxiv.org/abs/2605.13309">
@@ -19,7 +19,7 @@
 
 ---
 
-SimART is an open-source software platform for UAV wireless communication and sensing simulation. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize UAV trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
+SimART is an open-source software platform for all-scenario wireless communication and sensing simulation. Built around ROS1, it integrates a C++/Qt/VTK graphical interface, Sionna-based ray tracing and link simulation, AirSim/Unreal Engine live visualization, and rosbag recording and replay tools. It helps users place base stations, visualize trajectories, inspect wireless channel observations, and evaluate beam selection workflows in 3D scenes.
 
 The project is designed for UAV communication research, digital-twin wireless simulation, visual network planning, Sionna simulation data collection, and communication-sensing experiments in AirSim/Unreal Engine environments.
 
@@ -320,6 +320,12 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
 
 <p align="center">
   <img src="Tutorials/images/SionnaSYSData.png" alt="Sionna SYS panel in SimART" width="100%">
+</p>
+
+- You can also record the generated data after clicking "Start Simulation".
+
+<p align="center">
+  <img src="Tutorials/images/RecordingData.png" alt="Recording data in SimART" width="100%">
 </p>
 
 ## Use SimART with UE4 and AirSim
