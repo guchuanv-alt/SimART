@@ -330,7 +330,7 @@ rosrun airsim_gui_UErealtime airsim_gui_UErealtime
   <img src="Tutorials/images/SionnaSYSData.png" alt="Sionna SYS panel in SimART" width="100%">
 </p>
 
-- You can also record the generated data after clicking "Start Simulation".
+- You can also record the generated data after clicking "Start Recording".
 
 <p align="center">
   <img src="Tutorials/images/RecordingData.png" alt="Recording data in SimART" width="100%">
