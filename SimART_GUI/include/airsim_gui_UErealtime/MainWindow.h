@@ -374,6 +374,12 @@ private:
         std::vector<SysCandidateView> candidates;
     };
 
+    struct AirSimCameraCaptureConfig {
+        int width{1280};
+        int height{720};
+        int fovDeg{90};
+    };
+
     void buildUi();
     void buildMenuBar();
     void buildToolBar();
@@ -406,25 +412,31 @@ private:
     void setSelectedAirSimSettingsPath(const QString& path);
     QStringList effectiveAirSimSettingsPaths() const;
     QString currentAirSimSettingsPath(QString* errorMessage = nullptr) const;
+    QString currentAirSimPreviewCameraName() const;
+    bool isStationExternalCameraName(const QString& cameraName) const;
+    bool hasCustomAirSimPreviewExternalCamera(const QJsonObject& externalCameras) const;
+    bool missingAirSimGuiPreviewExternalCamera(const QString& settingsPath,
+                                               QString* errorMessage = nullptr) const;
     QVector<int> missingAirSimExternalCameraStationIndices(const QString& settingsPath,
                                                            QString* errorMessage = nullptr) const;
+    QJsonObject buildAirSimGuiPreviewExternalCameraEntry(const AirSimCameraCaptureConfig& captureConfig) const;
     QJsonObject buildAirSimExternalCameraEntries(const QVector<int>& stationIndices,
-                                                 int width,
-                                                 int height,
-                                                 int fovDeg) const;
+                                                 const AirSimCameraCaptureConfig& stationCaptureConfig,
+                                                 bool includeGuiPreview,
+                                                 const AirSimCameraCaptureConfig& guiPreviewCaptureConfig) const;
     bool buildAirSimSettingsPreview(const QString& settingsPath,
                                     const QVector<int>& stationIndices,
-                                    int width,
-                                    int height,
-                                    int fovDeg,
+                                    const AirSimCameraCaptureConfig& stationCaptureConfig,
+                                    bool includeGuiPreview,
+                                    const AirSimCameraCaptureConfig& guiPreviewCaptureConfig,
                                     QString* previewText,
                                     QVector<QPair<int, int>>* addedLineRanges,
                                     QString* errorMessage = nullptr) const;
     bool writeMissingAirSimExternalCameras(const QString& settingsPath,
                                            const QVector<int>& stationIndices,
-                                           int width,
-                                           int height,
-                                           int fovDeg,
+                                           const AirSimCameraCaptureConfig& stationCaptureConfig,
+                                           bool includeGuiPreview,
+                                           const AirSimCameraCaptureConfig& guiPreviewCaptureConfig,
                                            QString* backupPath = nullptr,
                                            QString* errorMessage = nullptr);
     bool isDroneCameraImageLayerKey(const QString& key) const;

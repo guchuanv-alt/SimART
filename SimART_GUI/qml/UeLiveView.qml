@@ -343,7 +343,7 @@ Rectangle {
                     font.pixelSize: 12
                 }
                 Text {
-                    text: "Host " + airSimView.host + ":" + airSimView.port + "   Camera " + airSimView.cameraName + (airSimView.vehicleName.length > 0 ? ("   Vehicle " + airSimView.vehicleName) : "")
+                    text: "Host " + airSimView.host + ":" + airSimView.port + "   Preview camera " + airSimView.cameraName + (airSimView.vehicleName.length > 0 ? ("   Vehicle " + airSimView.vehicleName) : "")
                     color: "#9fb3d9"
                     font.pixelSize: 12
                 }
