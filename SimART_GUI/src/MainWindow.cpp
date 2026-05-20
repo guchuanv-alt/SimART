@@ -1363,22 +1363,6 @@ Vec3 vec3FromJson(const QJsonValue& value, const Vec3& fallback = {}) {
             arr.at(2).toDouble(fallback.z)};
 }
 
-QJsonObject baseStationToJson(const BaseStation& station) {
-    QJsonObject obj;
-    obj[QStringLiteral("id")] = station.id;
-    obj[QStringLiteral("name")] = station.name;
-    obj[QStringLiteral("position")] = vec3ToJson(station.position);
-    obj[QStringLiteral("color")] = vec3ToJson(station.color);
-    obj[QStringLiteral("preview_camera_name")] = station.previewCameraName;
-    obj[QStringLiteral("preview_ros_topic")] = station.previewRosTopic;
-    obj[QStringLiteral("preview_offset_z")] = station.previewOffsetZ;
-    obj[QStringLiteral("preview_fps")] = station.previewFps;
-    if (station.previewCameraTargetEnabled) {
-        obj[QStringLiteral("preview_camera_target")] = vec3ToJson(station.previewCameraTarget);
-    }
-    return obj;
-}
-
 BaseStation baseStationFromJson(const QJsonObject& obj) {
     BaseStation station;
     station.id = obj.value(QStringLiteral("id")).toString().trimmed();
@@ -8274,15 +8258,27 @@ void MainWindow::syncStationCameraFpsControls() {
 int MainWindow::cameraFpsForControl(const QString& controlKey, const QString& rosTopic) const {
     Q_UNUSED(rosTopic);
     const QString key = controlKey.trimmed();
-    if (!key.isEmpty() && cameraFpsOverrides_.contains(key)) {
-        return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, defaultCameraFpsForControlKey(key)));
-    }
     if (isGuiPreviewFpsKey(key)) {
+        if (cameraFpsOverrides_.contains(key)) {
+            return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, kDefaultGuiPreviewFps));
+        }
         const double fps = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultGuiPreviewFps);
         return clampCameraFpsForControlKey(key, static_cast<int>(std::lround(fps)));
     }
     const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
     if (key.startsWith(stationPrefix)) {
+        const QString stationKey = key.mid(stationPrefix.size());
+        const int stationIndex = stationIndexForKey(stationKey);
+        if (stationIndex >= 0 && stationIndex < static_cast<int>(stations_.size())) {
+            const int fps = static_cast<int>(std::lround(stations_[static_cast<size_t>(stationIndex)].previewFps));
+            return clampCameraFpsForControlKey(key, fps > 0 ? fps : kDefaultCameraFps);
+        }
+        return kDefaultCameraFps;
+    }
+    if (!key.isEmpty() && cameraFpsOverrides_.contains(key)) {
+        return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, defaultCameraFpsForControlKey(key)));
+    }
+    if (!key.isEmpty()) {
         return kDefaultCameraFps;
     }
     return kDefaultCameraFps;
@@ -8318,11 +8314,14 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
         return;
     }
     const int clampedFps = clampCameraFpsForControlKey(key, fps);
-    const bool overrideChanged = !cameraFpsOverrides_.contains(key)
-        || cameraFpsOverrides_.value(key) != clampedFps;
-    cameraFpsOverrides_[key] = clampedFps;
+    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
 
     if (isGuiPreviewFpsKey(key)) {
+        const bool overrideChanged = !cameraFpsOverrides_.contains(key)
+            || cameraFpsOverrides_.value(key) != clampedFps;
+        if (showStatus) {
+            cameraFpsOverrides_[key] = clampedFps;
+        }
         if (airsimLiveFpsSpin_) {
             QSignalBlocker blocker(airsimLiveFpsSpin_);
             airsimLiveFpsSpin_->setValue(static_cast<double>(clampedFps));
@@ -8343,7 +8342,6 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
         setAirsimImageTopicFpsLimit(rosTopic, clampedFps);
     }
 
-    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
     if (key.startsWith(stationPrefix)) {
         const QString stationKey = key.mid(stationPrefix.size());
         const int stationIndex = stationIndexForKey(stationKey);
@@ -8355,17 +8353,26 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
         if (window && window->view && window->view->controller()) {
             window->view->controller()->setFramesPerSecond(normalizedFps);
         }
+        const bool stationFpsChanged =
+            std::abs(stations_[static_cast<size_t>(stationIndex)].previewFps - normalizedFps) > 1e-9;
+        if (showStatus && stationFpsChanged) {
+            stations_[static_cast<size_t>(stationIndex)].previewFps = normalizedFps;
+            markBaseStationsDirty();
+            refreshInfoPanel();
+        }
         if (showStatus) {
             onStatusMessage(tr("Updated station camera FPS for %1 to %2 fps.")
                                 .arg(stations_[static_cast<size_t>(stationIndex)].name)
                                 .arg(clampedFps));
         }
-        if (showStatus && overrideChanged) {
-            markGuiConfigDirty();
-        }
         return;
     }
 
+    const bool overrideChanged = !cameraFpsOverrides_.contains(key)
+        || cameraFpsOverrides_.value(key) != clampedFps;
+    if (showStatus) {
+        cameraFpsOverrides_[key] = clampedFps;
+    }
     if (showStatus && !rosTopic.trimmed().isEmpty()) {
         onStatusMessage(tr("Updated ROS camera FPS for %1 to %2 fps.")
                             .arg(normalizedRosTopicName(rosTopic))
@@ -8872,6 +8879,13 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
 
     const QString configFilePath = normalizedGuiConfigPath(filePath);
     ensureRosbagToolsWindow();
+    if (stationCameraFpsTopicCombo_ && stationCameraFpsSpin_) {
+        stationCameraFpsSpin_->interpretText();
+        const QString key = stationCameraFpsTopicCombo_->currentData(Qt::UserRole).toString().trimmed();
+        if (key.startsWith(QLatin1String(kCameraFpsRosTopicPrefix))) {
+            cameraFpsOverrides_[key] = clampCameraFpsForControlKey(key, stationCameraFpsSpin_->value());
+        }
+    }
 
     QJsonObject root;
     root[QStringLiteral("format")] = QStringLiteral("airsim_gui_UErealtime_config");
@@ -8896,11 +8910,6 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     }
     root[QStringLiteral("layer_states")] = layerStates;
 
-    QJsonArray baseStationsArray;
-    for (const auto& station : stations_) {
-        baseStationsArray.push_back(baseStationToJson(station));
-    }
-    root[QStringLiteral("base_stations")] = baseStationsArray;
     root[QStringLiteral("simulation_settings")] = simulationSettingsToJson(simSettings_);
     root[QStringLiteral("ckm_settings")] = ckmSettingsToJson(ckmSettings_);
     root[QStringLiteral("coordinate_transforms")] = coordinateTransformSettingsToJson(coordinateTransforms_);
@@ -8920,9 +8929,39 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     root[QStringLiteral("live_view")] = liveView;
 
     QJsonObject cameraFpsOverrides;
+    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
+    const QString guiPreviewKey = QString::fromLatin1(kCameraFpsGuiPreviewKey);
+    const QString rosPrefix = QString::fromLatin1(kCameraFpsRosTopicPrefix);
+    QSet<QString> serializedCameraFpsKeys;
+    bool serializedCurrentRosImageItems = false;
+    QString settingsParseError;
+    const QString preferredVehicle = airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString();
+    for (const QString& candidate : effectiveAirSimSettingsPaths()) {
+        if (!QFileInfo::exists(candidate)) {
+            continue;
+        }
+        const QVector<CameraFpsControlItem> rosImageItems =
+            parseAirSimRosImageTopicItems(candidate, preferredVehicle, &settingsParseError);
+        for (const CameraFpsControlItem& item : rosImageItems) {
+            const QString key = item.controlKey.trimmed();
+            if (key.isEmpty()) {
+                continue;
+            }
+            cameraFpsOverrides[key] = cameraFpsForControl(key, item.rosTopic);
+            serializedCameraFpsKeys.insert(key);
+        }
+        if (!rosImageItems.isEmpty()) {
+            serializedCurrentRosImageItems = true;
+            break;
+        }
+    }
     for (auto it = cameraFpsOverrides_.cbegin(); it != cameraFpsOverrides_.cend(); ++it) {
         const QString key = it.key().trimmed();
-        if (!key.isEmpty()) {
+        if (!key.isEmpty()
+            && !serializedCameraFpsKeys.contains(key)
+            && !key.startsWith(stationPrefix)
+            && !(serializedCurrentRosImageItems && key.startsWith(rosPrefix))
+            && key != guiPreviewKey) {
             cameraFpsOverrides[key] = clampCameraFpsForControlKey(key, it.value());
         }
     }
@@ -9062,7 +9101,24 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
         importedSceneMeshPathProvided = true;
     }
 
-    if (root.contains(QStringLiteral("base_stations")) && root.value(QStringLiteral("base_stations")).isArray()) {
+    bool baseStationsLoaded = false;
+    if (!baseStationsConfigPath_.trimmed().isEmpty()) {
+        std::vector<BaseStation> loadedStations;
+        QString stationError;
+        if (!JsonConfig::loadBaseStations(baseStationsConfigPath_, loadedStations, &stationError)) {
+            if (errorMessage) {
+                *errorMessage = tr("Failed to load base-station JSON %1: %2")
+                                    .arg(baseStationsConfigPath_, stationError);
+            }
+            return false;
+        }
+        applyBaseStations(loadedStations);
+        baseStationsLoaded = true;
+    }
+
+    if (!baseStationsLoaded
+        && root.contains(QStringLiteral("base_stations"))
+        && root.value(QStringLiteral("base_stations")).isArray()) {
         std::vector<BaseStation> loadedStations;
         const QJsonArray array = root.value(QStringLiteral("base_stations")).toArray();
         loadedStations.reserve(static_cast<size_t>(array.size()));
@@ -9072,6 +9128,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
             }
         }
         applyBaseStations(loadedStations);
+        baseStationsLoaded = true;
     }
 
     if (root.contains(QStringLiteral("layer_states")) && root.value(QStringLiteral("layer_states")).isObject() && layerTree_) {
@@ -9112,9 +9169,10 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     cameraFpsOverrides_.clear();
     if (root.contains(QStringLiteral("camera_fps_overrides")) && root.value(QStringLiteral("camera_fps_overrides")).isObject()) {
         const QJsonObject cameraFpsOverrides = root.value(QStringLiteral("camera_fps_overrides")).toObject();
+        const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
         for (auto it = cameraFpsOverrides.begin(); it != cameraFpsOverrides.end(); ++it) {
             const QString key = it.key().trimmed();
-            if (key.isEmpty()) {
+            if (key.isEmpty() || key.startsWith(stationPrefix)) {
                 continue;
             }
             const int fps = clampCameraFpsForControlKey(key, it.value().toInt(defaultCameraFpsForControlKey(key)));
@@ -9293,6 +9351,10 @@ void MainWindow::saveGuiConfig() {
         saveGuiConfigAs();
         return;
     }
+    if (!promptSaveBaseStationsJsonIfDirty(
+            tr("The base-station JSON has unsaved changes. Save it before saving the SimART config?"))) {
+        return;
+    }
 
     QString errorMessage;
     if (!saveGuiConfigToFile(currentGuiConfigPath_, &errorMessage)) {
@@ -9313,6 +9375,10 @@ void MainWindow::saveGuiConfigAs() {
         return;
     }
     path = normalizedGuiConfigPath(path);
+    if (!promptSaveBaseStationsJsonIfDirty(
+            tr("The base-station JSON has unsaved changes. Save it before saving the SimART config?"))) {
+        return;
+    }
 
     QString errorMessage;
     if (!saveGuiConfigToFile(path, &errorMessage)) {
