@@ -64,7 +64,7 @@ BaseStation normalizedStationForSave(BaseStation station, int fallbackIndex) {
         station.previewRosTopic = station.previewRosTopic.trimmed();
     }
     if (station.previewFps <= 0.0) {
-        station.previewFps = 20.0;
+        station.previewFps = 60.0;
     }
     return station;
 }
@@ -95,7 +95,7 @@ bool JsonConfig::loadBaseStations(const QString& filePath,
         }
         station.previewRosTopic = obj.value("preview_ros_topic").toString().trimmed();
         station.previewOffsetZ = obj.value("preview_offset_z").toDouble(0.0);
-        station.previewFps = obj.value("preview_fps").toDouble(20.0);
+        station.previewFps = obj.value("preview_fps").toDouble(60.0);
         if (obj.value("preview_camera_target").isArray()) {
             const QJsonArray targetArr = obj.value("preview_camera_target").toArray();
             if (targetArr.size() >= 3) {

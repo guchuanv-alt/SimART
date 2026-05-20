@@ -161,7 +161,26 @@ constexpr const char* kCameraFpsRosTopicPrefix = "ros:";
 constexpr const char* kCameraFpsStationPrefix = "station:";
 constexpr const char* kDroneCameraImageLayerPrefix = "drone_camera_image:";
 constexpr const char* kUntitledGuiConfigName = "untitled";
-constexpr int kDefaultCameraFps = 100;
+constexpr int kDefaultGuiPreviewFps = 10;
+constexpr int kMaxGuiPreviewFps = 30;
+constexpr int kDefaultCameraFps = 60;
+constexpr int kMaxCameraFps = 100;
+
+bool isGuiPreviewFpsKey(const QString& key) {
+    return key.trimmed() == QLatin1String(kCameraFpsGuiPreviewKey);
+}
+
+int maxCameraFpsForControlKey(const QString& key) {
+    return isGuiPreviewFpsKey(key) ? kMaxGuiPreviewFps : kMaxCameraFps;
+}
+
+int defaultCameraFpsForControlKey(const QString& key) {
+    return isGuiPreviewFpsKey(key) ? kDefaultGuiPreviewFps : kDefaultCameraFps;
+}
+
+int clampCameraFpsForControlKey(const QString& key, int fps) {
+    return std::max(1, std::min(maxCameraFpsForControlKey(key), fps));
+}
 
 bool isDroneCameraImageLayerKeyStatic(const QString& key) {
     return key.startsWith(QLatin1String(kDroneCameraImageLayerPrefix));
@@ -4250,10 +4269,10 @@ void MainWindow::buildRightDock() {
     airsimLiveFollowCheck_ = new QCheckBox(tr("Follow vehicle focus"), liveViewBox);
     airsimLiveFollowCheck_->setChecked(true);
     airsimLiveFpsSpin_ = new QDoubleSpinBox(liveViewBox);
-    airsimLiveFpsSpin_->setRange(1.0, 100.0);
+    airsimLiveFpsSpin_->setRange(1.0, static_cast<double>(kMaxGuiPreviewFps));
     airsimLiveFpsSpin_->setDecimals(1);
     airsimLiveFpsSpin_->setKeyboardTracking(false);
-    airsimLiveFpsSpin_->setValue(static_cast<double>(kDefaultCameraFps));
+    airsimLiveFpsSpin_->setValue(static_cast<double>(kDefaultGuiPreviewFps));
     airsimLiveFpsSpin_->hide();
     auto* cameraRow = new QWidget(liveViewBox);
     auto* cameraRowLayout = new QHBoxLayout(cameraRow);
@@ -4287,7 +4306,7 @@ void MainWindow::buildRightDock() {
     stationCameraFpsTopicCombo_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     stationCameraFpsTopicCombo_->setMinimumContentsLength(24);
     stationCameraFpsSpin_ = new QSpinBox(stationStreamBox);
-    stationCameraFpsSpin_->setRange(1, 100);
+    stationCameraFpsSpin_->setRange(1, kMaxCameraFps);
     stationCameraFpsSpin_->setKeyboardTracking(false);
     stationCameraFpsSpin_->setValue(kDefaultCameraFps);
     publishAllStationCameraTopicsButton_ = new QPushButton(tr("Publish All Topics"), stationStreamBox);
@@ -4960,7 +4979,7 @@ void MainWindow::syncAirSimLiveViewSettings() {
     airSimViewController_->setCameraName(airsimLiveCameraCombo_ ? airsimLiveCameraCombo_->currentText().trimmed() : QStringLiteral("front_center"));
     airSimViewController_->setVehicleName(airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString());
     airSimViewController_->setFollowVehicle(airsimLiveFollowCheck_ ? airsimLiveFollowCheck_->isChecked() : true);
-    airSimViewController_->setFramesPerSecond(airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps));
+    airSimViewController_->setFramesPerSecond(airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultGuiPreviewFps));
     airSimViewController_->setDepthFetchEnabled(false);
     airSimViewController_->setDisplayBrightness(currentAirSimBrightnessFactor());
     airSimViewController_->setPythonExecutable(simSettings_.pythonExecutable);
@@ -4977,11 +4996,12 @@ void MainWindow::onStationCameraFpsTopicChanged(int index) {
 
     const QString controlKey = stationCameraFpsTopicCombo_->itemData(index, Qt::UserRole).toString().trimmed();
     const QString rosTopic = stationCameraFpsTopicCombo_->itemData(index, Qt::UserRole + 1).toString().trimmed();
-    const int fpsValue = cameraFpsForControl(controlKey, rosTopic);
+    const int fpsValue = clampCameraFpsForControlKey(controlKey, cameraFpsForControl(controlKey, rosTopic));
 
     QSignalBlocker spinBlocker(stationCameraFpsSpin_);
     suppressStationCameraFpsControls_ = true;
     stationCameraFpsSpin_->setEnabled(!controlKey.isEmpty());
+    stationCameraFpsSpin_->setRange(1, maxCameraFpsForControlKey(controlKey));
     stationCameraFpsSpin_->setValue(fpsValue);
     suppressStationCameraFpsControls_ = false;
     applyCameraFpsForControl(controlKey, rosTopic, fpsValue, false);
@@ -8239,9 +8259,11 @@ void MainWindow::syncStationCameraFpsControls() {
         stationCameraFpsTopicCombo_->setCurrentIndex(comboIndex);
         activeControlKey = stationCameraFpsTopicCombo_->itemData(comboIndex, Qt::UserRole).toString().trimmed();
         activeRosTopic = stationCameraFpsTopicCombo_->itemData(comboIndex, Qt::UserRole + 1).toString().trimmed();
-        fpsValue = cameraFpsForControl(activeControlKey, activeRosTopic);
+        fpsValue = clampCameraFpsForControlKey(activeControlKey, cameraFpsForControl(activeControlKey, activeRosTopic));
+        stationCameraFpsSpin_->setRange(1, maxCameraFpsForControlKey(activeControlKey));
         stationCameraFpsSpin_->setValue(fpsValue);
     } else {
+        stationCameraFpsSpin_->setRange(1, kMaxCameraFps);
         stationCameraFpsSpin_->setValue(kDefaultCameraFps);
     }
 
@@ -8253,11 +8275,11 @@ int MainWindow::cameraFpsForControl(const QString& controlKey, const QString& ro
     Q_UNUSED(rosTopic);
     const QString key = controlKey.trimmed();
     if (!key.isEmpty() && cameraFpsOverrides_.contains(key)) {
-        return std::max(1, std::min(100, cameraFpsOverrides_.value(key, kDefaultCameraFps)));
+        return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, defaultCameraFpsForControlKey(key)));
     }
-    if (key == QLatin1String(kCameraFpsGuiPreviewKey)) {
-        const double fps = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps);
-        return std::max(1, std::min(100, static_cast<int>(std::lround(fps))));
+    if (isGuiPreviewFpsKey(key)) {
+        const double fps = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultGuiPreviewFps);
+        return clampCameraFpsForControlKey(key, static_cast<int>(std::lround(fps)));
     }
     const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
     if (key.startsWith(stationPrefix)) {
@@ -8275,7 +8297,7 @@ void MainWindow::setAirsimImageTopicFpsLimit(const QString& rosTopic, int fps) {
     if (topic.isEmpty()) {
         return;
     }
-    const int clampedFps = std::max(1, std::min(100, fps));
+    const int clampedFps = std::max(1, std::min(kMaxCameraFps, fps));
     const QString paramName = imageTopicFpsParamName(topic);
     if (airsimImageTopicFpsLastApplied_.value(paramName, -1) == clampedFps) {
         return;
@@ -8295,12 +8317,12 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
     if (key.isEmpty()) {
         return;
     }
-    const int clampedFps = std::max(1, std::min(100, fps));
+    const int clampedFps = clampCameraFpsForControlKey(key, fps);
     const bool overrideChanged = !cameraFpsOverrides_.contains(key)
         || cameraFpsOverrides_.value(key) != clampedFps;
     cameraFpsOverrides_[key] = clampedFps;
 
-    if (key == QLatin1String(kCameraFpsGuiPreviewKey)) {
+    if (isGuiPreviewFpsKey(key)) {
         if (airsimLiveFpsSpin_) {
             QSignalBlocker blocker(airsimLiveFpsSpin_);
             airsimLiveFpsSpin_->setValue(static_cast<double>(clampedFps));
@@ -8890,7 +8912,10 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     liveView[QStringLiteral("camera_name")] = airsimLiveCameraCombo_ ? airsimLiveCameraCombo_->currentText().trimmed() : QString();
     liveView[QStringLiteral("vehicle_name")] = airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString();
     liveView[QStringLiteral("follow_vehicle_focus")] = airsimLiveFollowCheck_ ? airsimLiveFollowCheck_->isChecked() : true;
-    liveView[QStringLiteral("live_fps")] = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps);
+    liveView[QStringLiteral("live_fps")] = airsimLiveFpsSpin_
+        ? static_cast<double>(clampCameraFpsForControlKey(QString::fromLatin1(kCameraFpsGuiPreviewKey),
+                                                          static_cast<int>(std::lround(airsimLiveFpsSpin_->value()))))
+        : static_cast<double>(kDefaultGuiPreviewFps);
     liveView[QStringLiteral("brightness_percent")] = airsimBrightnessSlider_ ? airsimBrightnessSlider_->value() : 100;
     root[QStringLiteral("live_view")] = liveView;
 
@@ -8898,7 +8923,7 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     for (auto it = cameraFpsOverrides_.cbegin(); it != cameraFpsOverrides_.cend(); ++it) {
         const QString key = it.key().trimmed();
         if (!key.isEmpty()) {
-            cameraFpsOverrides[key] = std::max(1, std::min(100, it.value()));
+            cameraFpsOverrides[key] = clampCameraFpsForControlKey(key, it.value());
         }
     }
     root[QStringLiteral("camera_fps_overrides")] = cameraFpsOverrides;
@@ -9074,7 +9099,11 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
         if (airsimLiveCameraCombo_ && liveView.contains(QStringLiteral("camera_name"))) airsimLiveCameraCombo_->setEditText(liveView.value(QStringLiteral("camera_name")).toString());
         if (airsimLiveVehicleEdit_ && liveView.contains(QStringLiteral("vehicle_name"))) airsimLiveVehicleEdit_->setText(liveView.value(QStringLiteral("vehicle_name")).toString());
         if (airsimLiveFollowCheck_ && liveView.contains(QStringLiteral("follow_vehicle_focus"))) airsimLiveFollowCheck_->setChecked(liveView.value(QStringLiteral("follow_vehicle_focus")).toBool(true));
-        if (airsimLiveFpsSpin_ && liveView.contains(QStringLiteral("live_fps"))) airsimLiveFpsSpin_->setValue(liveView.value(QStringLiteral("live_fps")).toDouble(static_cast<double>(kDefaultCameraFps)));
+        if (airsimLiveFpsSpin_ && liveView.contains(QStringLiteral("live_fps"))) {
+            const int fps = clampCameraFpsForControlKey(QString::fromLatin1(kCameraFpsGuiPreviewKey),
+                                                        static_cast<int>(std::lround(liveView.value(QStringLiteral("live_fps")).toDouble(static_cast<double>(kDefaultGuiPreviewFps)))));
+            airsimLiveFpsSpin_->setValue(static_cast<double>(fps));
+        }
         if (airsimBrightnessSlider_ && liveView.contains(QStringLiteral("brightness_percent"))) airsimBrightnessSlider_->setValue(liveView.value(QStringLiteral("brightness_percent")).toInt(100));
     } else {
         setSelectedAirSimSettingsPath(QString());
@@ -9088,13 +9117,13 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
             if (key.isEmpty()) {
                 continue;
             }
-            const int fps = std::max(1, std::min(100, it.value().toInt(kDefaultCameraFps)));
+            const int fps = clampCameraFpsForControlKey(key, it.value().toInt(defaultCameraFpsForControlKey(key)));
             cameraFpsOverrides_[key] = fps;
         }
     }
     const QString guiPreviewFpsKey = QString::fromLatin1(kCameraFpsGuiPreviewKey);
     if (airsimLiveFpsSpin_ && cameraFpsOverrides_.contains(guiPreviewFpsKey)) {
-        airsimLiveFpsSpin_->setValue(static_cast<double>(cameraFpsOverrides_.value(guiPreviewFpsKey, kDefaultCameraFps)));
+        airsimLiveFpsSpin_->setValue(static_cast<double>(cameraFpsOverrides_.value(guiPreviewFpsKey, kDefaultGuiPreviewFps)));
     }
 
     if (root.contains(QStringLiteral("rosbag_record")) && root.value(QStringLiteral("rosbag_record")).isObject()) {

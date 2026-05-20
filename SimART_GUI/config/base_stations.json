@@ -14,7 +14,7 @@
                 22
             ],
             "preview_camera_name": "bs_0_camera",
-            "preview_fps": 20,
+            "preview_fps": 60,
             "preview_offset_z": 0,
             "preview_ros_topic": "/airsim_gui/station_cameras/bs_0/image_raw"
         },
@@ -32,7 +32,7 @@
                 18
             ],
             "preview_camera_name": "bs_1_camera",
-            "preview_fps": 20,
+            "preview_fps": 60,
             "preview_offset_z": 0,
             "preview_ros_topic": "/airsim_gui/station_cameras/bs_1/image_raw"
         },
@@ -50,7 +50,7 @@
                 1
             ],
             "preview_camera_name": "bs_2_camera",
-            "preview_fps": 20,
+            "preview_fps": 60,
             "preview_offset_z": 0,
             "preview_ros_topic": "/airsim_gui/station_cameras/bs_2/image_raw"
         }
