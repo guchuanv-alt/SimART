@@ -424,3 +424,13 @@ If you use SimART in your research, please cite our paper:
   year={2026}
 }
 ```
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=guchuanv-alt%2FSimART&type=timeline&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=guchuanv-alt/SimART&type=timeline&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=guchuanv-alt/SimART&type=timeline&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=guchuanv-alt/SimART&type=timeline&legend=top-left" />
+ </picture>
+</a>
