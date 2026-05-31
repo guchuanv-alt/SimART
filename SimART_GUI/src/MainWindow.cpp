@@ -65,6 +65,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QProgressDialog>
+#include <QPointer>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QFrame>
@@ -84,6 +85,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItemIterator>
 #include <QTreeWidgetItem>
+#include <QUrl>
 #include <QVector>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -96,13 +98,19 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstring>
 #include <cmath>
 #include <functional>
 #include <limits>
 #include <set>
 #include <signal.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 
 namespace airsim_gui {
@@ -165,6 +173,7 @@ constexpr int kDefaultGuiPreviewFps = 10;
 constexpr int kMaxGuiPreviewFps = 30;
 constexpr int kDefaultCameraFps = 60;
 constexpr int kMaxCameraFps = 100;
+constexpr int kAirSimCameraConnectionTimeoutMs = 3000;
 
 bool isGuiPreviewFpsKey(const QString& key) {
     return key.trimmed() == QLatin1String(kCameraFpsGuiPreviewKey);
@@ -180,6 +189,123 @@ int defaultCameraFpsForControlKey(const QString& key) {
 
 int clampCameraFpsForControlKey(const QString& key, int fps) {
     return std::max(1, std::min(maxCameraFpsForControlKey(key), fps));
+}
+
+QString socketErrorText(int errorCode) {
+    return QString::fromLocal8Bit(std::strerror(errorCode));
+}
+
+bool tcpEndpointReachableWithinTimeout(const QString& host,
+                                       int port,
+                                       int timeoutMs,
+                                       QString* errorMessage) {
+    if (errorMessage) {
+        errorMessage->clear();
+    }
+    if (host.trimmed().isEmpty() || port <= 0) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Invalid ROS master endpoint.");
+        }
+        return false;
+    }
+
+    QByteArray hostBytes = host.trimmed().toUtf8();
+    if (host.compare(QStringLiteral("localhost"), Qt::CaseInsensitive) == 0) {
+        hostBytes = QByteArrayLiteral("127.0.0.1");
+    }
+    const QByteArray portBytes = QByteArray::number(port);
+
+    addrinfo hints{};
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    addrinfo* results = nullptr;
+    const int gai = getaddrinfo(hostBytes.constData(), portBytes.constData(), &hints, &results);
+    if (gai != 0 || !results) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Could not resolve ROS master %1:%2: %3")
+                                .arg(host, QString::number(port), QString::fromLocal8Bit(gai_strerror(gai)));
+        }
+        return false;
+    }
+
+    bool connected = false;
+    QString lastError;
+    QElapsedTimer timer;
+    timer.start();
+    for (addrinfo* ai = results; ai && !connected; ai = ai->ai_next) {
+        const int remainingMs = timeoutMs - static_cast<int>(timer.elapsed());
+        if (remainingMs <= 0) {
+            lastError = QObject::tr("Connection timed out.");
+            break;
+        }
+
+        const int fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (fd < 0) {
+            lastError = socketErrorText(errno);
+            continue;
+        }
+
+        const int flags = fcntl(fd, F_GETFL, 0);
+        if (flags >= 0) {
+            fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        }
+
+        const int connectResult = connect(fd, ai->ai_addr, ai->ai_addrlen);
+        if (connectResult == 0) {
+            connected = true;
+            close(fd);
+            break;
+        }
+        if (errno != EINPROGRESS) {
+            lastError = socketErrorText(errno);
+            close(fd);
+            continue;
+        }
+
+        fd_set writeSet;
+        FD_ZERO(&writeSet);
+        FD_SET(fd, &writeSet);
+        timeval timeout{};
+        timeout.tv_sec = remainingMs / 1000;
+        timeout.tv_usec = (remainingMs % 1000) * 1000;
+        const int selectResult = select(fd + 1, nullptr, &writeSet, nullptr, &timeout);
+        if (selectResult > 0 && FD_ISSET(fd, &writeSet)) {
+            int socketError = 0;
+            socklen_t socketErrorLen = sizeof(socketError);
+            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &socketError, &socketErrorLen) == 0 && socketError == 0) {
+                connected = true;
+            } else {
+                lastError = socketErrorText(socketError == 0 ? errno : socketError);
+            }
+        } else if (selectResult == 0) {
+            lastError = QObject::tr("Connection timed out.");
+        } else {
+            lastError = socketErrorText(errno);
+        }
+        close(fd);
+    }
+    freeaddrinfo(results);
+
+    if (!connected && errorMessage) {
+        *errorMessage = lastError.trimmed().isEmpty()
+            ? QObject::tr("Could not connect to ROS master %1:%2.").arg(host).arg(port)
+            : QObject::tr("Could not connect to ROS master %1:%2: %3").arg(host).arg(port).arg(lastError);
+    }
+    return connected;
+}
+
+bool rosMasterReachableWithinTimeout(int timeoutMs, QString* errorMessage) {
+    const QString masterUri = QString::fromStdString(ros::master::getURI()).trimmed();
+    const QUrl url(masterUri);
+    const QString host = url.host().trimmed();
+    const int port = url.port(11311);
+    if (!url.isValid() || host.isEmpty()) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Invalid ROS_MASTER_URI: %1").arg(masterUri);
+        }
+        return false;
+    }
+    return tcpEndpointReachableWithinTimeout(host, port, timeoutMs, errorMessage);
 }
 
 bool isDroneCameraImageLayerKeyStatic(const QString& key) {
@@ -3084,10 +3210,16 @@ public:
         if (host_) {
             host_->installEventFilter(this);
         }
+        imageTimeoutTimer_ = new QTimer(this);
+        imageTimeoutTimer_->setSingleShot(true);
+        connect(imageTimeoutTimer_, &QTimer::timeout, this, [this]() {
+            onImageTimeout();
+        });
         hide();
     }
 
     ~CameraImageStripWidget() override {
+        ++subscriptionGeneration_;
         shutdownSubscriptions();
     }
 
@@ -3351,6 +3483,7 @@ private:
     }
 
     void rebuildCards() {
+        ++subscriptionGeneration_;
         shutdownSubscriptions();
         auto* layout = qobject_cast<QHBoxLayout*>(this->layout());
         while (layout && layout->count() > 0) {
@@ -3389,6 +3522,7 @@ private:
     }
 
     void restartSubscriptions() {
+        const int generation = ++subscriptionGeneration_;
         shutdownSubscriptions();
         if (!active_ || cards_.isEmpty()) {
             hide();
@@ -3396,17 +3530,70 @@ private:
         }
         show();
         raise();
+        imageReceived_ = false;
+        connectionErrorDialogShown_ = false;
         if (!ros::isInitialized()) {
-            setAllStatus(tr("ROS is not initialized"));
+            failConnection(generation,
+                           tr("ROS is not initialized. Start the ROS/AirSim bridge before displaying drone camera images."),
+                           true);
             return;
         }
-        ros::start();
-        if (!ros::master::check()) {
-            setAllStatus(tr("Waiting for ROS master"));
+        setAllStatus(tr("Connecting to AirSim camera stream...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
+        beginRosMasterCheck(generation);
+    }
+
+    void beginRosMasterCheck(int generation) {
+        QPointer<CameraImageStripWidget> guard(this);
+        std::thread([guard, generation]() {
+            QString errorMessage;
+            const bool ok = rosMasterReachableWithinTimeout(kAirSimCameraConnectionTimeoutMs, &errorMessage);
+            QMetaObject::invokeMethod(qApp,
+                [guard, generation, ok, errorMessage]() {
+                    if (!guard) {
+                        return;
+                    }
+                    guard->onRosMasterCheckFinished(generation, ok, errorMessage);
+                },
+                Qt::QueuedConnection);
+        }).detach();
+    }
+
+    void onRosMasterCheckFinished(int generation, bool ok, const QString& errorMessage) {
+        if (generation != subscriptionGeneration_ || !active_ || cards_.isEmpty()) {
+            return;
+        }
+        if (!ok) {
+            failConnection(generation,
+                           tr("Unable to connect to AirSim camera stream before timeout.\n%1")
+                               .arg(errorMessage.trimmed().isEmpty()
+                                        ? tr("ROS master is not reachable.")
+                                        : errorMessage),
+                           true);
+            return;
+        }
+        startRosSubscriptions(generation);
+    }
+
+    void startRosSubscriptions(int generation) {
+        if (generation != subscriptionGeneration_ || !active_ || cards_.isEmpty()) {
+            return;
+        }
+        try {
+            ros::start();
+            nodeHandle_ = std::make_unique<ros::NodeHandle>();
+        } catch (const std::exception& ex) {
+            failConnection(generation,
+                           tr("Unable to start ROS image subscription: %1").arg(QString::fromUtf8(ex.what())),
+                           true);
+            return;
+        } catch (...) {
+            failConnection(generation,
+                           tr("Unable to start ROS image subscription."),
+                           true);
             return;
         }
 
-        nodeHandle_ = std::make_unique<ros::NodeHandle>();
+        setAllStatus(tr("Waiting for AirSim image...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
         for (Card& card : cards_) {
             const QString key = card.item.key;
             const QString topic = card.item.topic;
@@ -3429,9 +3616,13 @@ private:
         }
         spinner_ = std::make_unique<ros::AsyncSpinner>(1);
         spinner_->start();
+        startImageTimeout(generation);
     }
 
     void shutdownSubscriptions() {
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->stop();
+        }
         for (Card& card : cards_) {
             card.subscriber.shutdown();
         }
@@ -3442,7 +3633,43 @@ private:
         nodeHandle_.reset();
     }
 
+    void startImageTimeout(int generation) {
+        imageReceived_ = false;
+        imageTimeoutGeneration_ = generation;
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->start(kAirSimCameraConnectionTimeoutMs);
+        }
+    }
+
+    void onImageTimeout() {
+        if (imageReceived_ || imageTimeoutGeneration_ != subscriptionGeneration_) {
+            return;
+        }
+        failConnection(imageTimeoutGeneration_,
+                       tr("No image arrived on the selected drone camera topic before timeout. Start AirSim and airsim_node, then try again."),
+                       true);
+    }
+
+    void failConnection(int generation, const QString& detail, bool showDialog) {
+        if (generation != subscriptionGeneration_) {
+            return;
+        }
+        shutdownSubscriptions();
+        const QString message = tr("Unable to connect to AirSim camera stream.");
+        setAllStatus(QStringLiteral("%1\n%2").arg(message, detail));
+        if (showDialog && !connectionErrorDialogShown_) {
+            connectionErrorDialogShown_ = true;
+            QMessageBox::warning(window() ? window() : this,
+                                 tr("AirSim Camera Stream"),
+                                 QStringLiteral("%1\n\n%2").arg(message, detail));
+        }
+    }
+
     void updateImage(const QString& key, const QString& topic, const QImage& image) {
+        imageReceived_ = true;
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->stop();
+        }
         for (Card& card : cards_) {
             if (card.item.key != key) {
                 continue;
@@ -3496,6 +3723,11 @@ private:
     QSize cardSize_{420, 190};
     std::unique_ptr<ros::NodeHandle> nodeHandle_;
     std::unique_ptr<ros::AsyncSpinner> spinner_;
+    QTimer* imageTimeoutTimer_{nullptr};
+    int subscriptionGeneration_{0};
+    int imageTimeoutGeneration_{0};
+    bool imageReceived_{false};
+    bool connectionErrorDialogShown_{false};
 };
 
 MainWindow::MainWindow(QWidget* parent)
