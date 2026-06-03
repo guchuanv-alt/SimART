@@ -22,7 +22,7 @@ struct BaseStation {
     QString previewCameraName;
     QString previewRosTopic;
     double previewOffsetZ{0.0};
-    double previewFps{100.0};
+    double previewFps{60.0};
     bool previewCameraTargetEnabled{false};
     Vec3 previewCameraTarget{};
 };

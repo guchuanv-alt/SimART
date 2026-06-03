@@ -65,6 +65,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QProgressDialog>
+#include <QPointer>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QFrame>
@@ -84,6 +85,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItemIterator>
 #include <QTreeWidgetItem>
+#include <QUrl>
 #include <QVector>
 #include <QVBoxLayout>
 #include <QTimer>
@@ -96,13 +98,19 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstring>
 #include <cmath>
 #include <functional>
 #include <limits>
 #include <set>
 #include <signal.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 
 namespace airsim_gui {
@@ -155,12 +163,150 @@ constexpr double kPreviewCameraTargetDistanceMeters = 10.0;
 constexpr qint64 kStationCameraPublishLeaseRefreshMs = 2500;
 constexpr qint64 kStationCameraPublishRetryMs = 2000;
 constexpr qint64 kStationCameraAirSimDisconnectGraceMs = 5000;
+constexpr const char* kGuiPreviewCameraName = "GuiPreview";
 constexpr const char* kCameraFpsGuiPreviewKey = "gui_preview";
 constexpr const char* kCameraFpsRosTopicPrefix = "ros:";
 constexpr const char* kCameraFpsStationPrefix = "station:";
 constexpr const char* kDroneCameraImageLayerPrefix = "drone_camera_image:";
 constexpr const char* kUntitledGuiConfigName = "untitled";
-constexpr int kDefaultCameraFps = 100;
+constexpr int kDefaultGuiPreviewFps = 10;
+constexpr int kMaxGuiPreviewFps = 30;
+constexpr int kDefaultCameraFps = 60;
+constexpr int kMaxCameraFps = 100;
+constexpr int kAirSimCameraConnectionTimeoutMs = 3000;
+
+bool isGuiPreviewFpsKey(const QString& key) {
+    return key.trimmed() == QLatin1String(kCameraFpsGuiPreviewKey);
+}
+
+int maxCameraFpsForControlKey(const QString& key) {
+    return isGuiPreviewFpsKey(key) ? kMaxGuiPreviewFps : kMaxCameraFps;
+}
+
+int defaultCameraFpsForControlKey(const QString& key) {
+    return isGuiPreviewFpsKey(key) ? kDefaultGuiPreviewFps : kDefaultCameraFps;
+}
+
+int clampCameraFpsForControlKey(const QString& key, int fps) {
+    return std::max(1, std::min(maxCameraFpsForControlKey(key), fps));
+}
+
+QString socketErrorText(int errorCode) {
+    return QString::fromLocal8Bit(std::strerror(errorCode));
+}
+
+bool tcpEndpointReachableWithinTimeout(const QString& host,
+                                       int port,
+                                       int timeoutMs,
+                                       QString* errorMessage) {
+    if (errorMessage) {
+        errorMessage->clear();
+    }
+    if (host.trimmed().isEmpty() || port <= 0) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Invalid ROS master endpoint.");
+        }
+        return false;
+    }
+
+    QByteArray hostBytes = host.trimmed().toUtf8();
+    if (host.compare(QStringLiteral("localhost"), Qt::CaseInsensitive) == 0) {
+        hostBytes = QByteArrayLiteral("127.0.0.1");
+    }
+    const QByteArray portBytes = QByteArray::number(port);
+
+    addrinfo hints{};
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    addrinfo* results = nullptr;
+    const int gai = getaddrinfo(hostBytes.constData(), portBytes.constData(), &hints, &results);
+    if (gai != 0 || !results) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Could not resolve ROS master %1:%2: %3")
+                                .arg(host, QString::number(port), QString::fromLocal8Bit(gai_strerror(gai)));
+        }
+        return false;
+    }
+
+    bool connected = false;
+    QString lastError;
+    QElapsedTimer timer;
+    timer.start();
+    for (addrinfo* ai = results; ai && !connected; ai = ai->ai_next) {
+        const int remainingMs = timeoutMs - static_cast<int>(timer.elapsed());
+        if (remainingMs <= 0) {
+            lastError = QObject::tr("Connection timed out.");
+            break;
+        }
+
+        const int fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+        if (fd < 0) {
+            lastError = socketErrorText(errno);
+            continue;
+        }
+
+        const int flags = fcntl(fd, F_GETFL, 0);
+        if (flags >= 0) {
+            fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        }
+
+        const int connectResult = connect(fd, ai->ai_addr, ai->ai_addrlen);
+        if (connectResult == 0) {
+            connected = true;
+            close(fd);
+            break;
+        }
+        if (errno != EINPROGRESS) {
+            lastError = socketErrorText(errno);
+            close(fd);
+            continue;
+        }
+
+        fd_set writeSet;
+        FD_ZERO(&writeSet);
+        FD_SET(fd, &writeSet);
+        timeval timeout{};
+        timeout.tv_sec = remainingMs / 1000;
+        timeout.tv_usec = (remainingMs % 1000) * 1000;
+        const int selectResult = select(fd + 1, nullptr, &writeSet, nullptr, &timeout);
+        if (selectResult > 0 && FD_ISSET(fd, &writeSet)) {
+            int socketError = 0;
+            socklen_t socketErrorLen = sizeof(socketError);
+            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &socketError, &socketErrorLen) == 0 && socketError == 0) {
+                connected = true;
+            } else {
+                lastError = socketErrorText(socketError == 0 ? errno : socketError);
+            }
+        } else if (selectResult == 0) {
+            lastError = QObject::tr("Connection timed out.");
+        } else {
+            lastError = socketErrorText(errno);
+        }
+        close(fd);
+    }
+    freeaddrinfo(results);
+
+    if (!connected && errorMessage) {
+        *errorMessage = lastError.trimmed().isEmpty()
+            ? QObject::tr("Could not connect to ROS master %1:%2.").arg(host).arg(port)
+            : QObject::tr("Could not connect to ROS master %1:%2: %3").arg(host).arg(port).arg(lastError);
+    }
+    return connected;
+}
+
+bool rosMasterReachableWithinTimeout(int timeoutMs, QString* errorMessage) {
+    const QString masterUri = QString::fromStdString(ros::master::getURI()).trimmed();
+    const QUrl url(masterUri);
+    const QString host = url.host().trimmed();
+    const int port = url.port(11311);
+    if (!url.isValid() || host.isEmpty()) {
+        if (errorMessage) {
+            *errorMessage = QObject::tr("Invalid ROS_MASTER_URI: %1").arg(masterUri);
+        }
+        return false;
+    }
+    return tcpEndpointReachableWithinTimeout(host, port, timeoutMs, errorMessage);
+}
 
 bool isDroneCameraImageLayerKeyStatic(const QString& key) {
     return key.startsWith(QLatin1String(kDroneCameraImageLayerPrefix));
@@ -1341,22 +1487,6 @@ Vec3 vec3FromJson(const QJsonValue& value, const Vec3& fallback = {}) {
     return {arr.at(0).toDouble(fallback.x),
             arr.at(1).toDouble(fallback.y),
             arr.at(2).toDouble(fallback.z)};
-}
-
-QJsonObject baseStationToJson(const BaseStation& station) {
-    QJsonObject obj;
-    obj[QStringLiteral("id")] = station.id;
-    obj[QStringLiteral("name")] = station.name;
-    obj[QStringLiteral("position")] = vec3ToJson(station.position);
-    obj[QStringLiteral("color")] = vec3ToJson(station.color);
-    obj[QStringLiteral("preview_camera_name")] = station.previewCameraName;
-    obj[QStringLiteral("preview_ros_topic")] = station.previewRosTopic;
-    obj[QStringLiteral("preview_offset_z")] = station.previewOffsetZ;
-    obj[QStringLiteral("preview_fps")] = station.previewFps;
-    if (station.previewCameraTargetEnabled) {
-        obj[QStringLiteral("preview_camera_target")] = vec3ToJson(station.previewCameraTarget);
-    }
-    return obj;
 }
 
 BaseStation baseStationFromJson(const QJsonObject& obj) {
@@ -3080,10 +3210,16 @@ public:
         if (host_) {
             host_->installEventFilter(this);
         }
+        imageTimeoutTimer_ = new QTimer(this);
+        imageTimeoutTimer_->setSingleShot(true);
+        connect(imageTimeoutTimer_, &QTimer::timeout, this, [this]() {
+            onImageTimeout();
+        });
         hide();
     }
 
     ~CameraImageStripWidget() override {
+        ++subscriptionGeneration_;
         shutdownSubscriptions();
     }
 
@@ -3347,6 +3483,7 @@ private:
     }
 
     void rebuildCards() {
+        ++subscriptionGeneration_;
         shutdownSubscriptions();
         auto* layout = qobject_cast<QHBoxLayout*>(this->layout());
         while (layout && layout->count() > 0) {
@@ -3385,6 +3522,7 @@ private:
     }
 
     void restartSubscriptions() {
+        const int generation = ++subscriptionGeneration_;
         shutdownSubscriptions();
         if (!active_ || cards_.isEmpty()) {
             hide();
@@ -3392,17 +3530,70 @@ private:
         }
         show();
         raise();
+        imageReceived_ = false;
+        connectionErrorDialogShown_ = false;
         if (!ros::isInitialized()) {
-            setAllStatus(tr("ROS is not initialized"));
+            failConnection(generation,
+                           tr("ROS is not initialized. Start the ROS/AirSim bridge before displaying drone camera images."),
+                           true);
             return;
         }
-        ros::start();
-        if (!ros::master::check()) {
-            setAllStatus(tr("Waiting for ROS master"));
+        setAllStatus(tr("Connecting to AirSim camera stream...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
+        beginRosMasterCheck(generation);
+    }
+
+    void beginRosMasterCheck(int generation) {
+        QPointer<CameraImageStripWidget> guard(this);
+        std::thread([guard, generation]() {
+            QString errorMessage;
+            const bool ok = rosMasterReachableWithinTimeout(kAirSimCameraConnectionTimeoutMs, &errorMessage);
+            QMetaObject::invokeMethod(qApp,
+                [guard, generation, ok, errorMessage]() {
+                    if (!guard) {
+                        return;
+                    }
+                    guard->onRosMasterCheckFinished(generation, ok, errorMessage);
+                },
+                Qt::QueuedConnection);
+        }).detach();
+    }
+
+    void onRosMasterCheckFinished(int generation, bool ok, const QString& errorMessage) {
+        if (generation != subscriptionGeneration_ || !active_ || cards_.isEmpty()) {
+            return;
+        }
+        if (!ok) {
+            failConnection(generation,
+                           tr("Unable to connect to AirSim camera stream before timeout.\n%1")
+                               .arg(errorMessage.trimmed().isEmpty()
+                                        ? tr("ROS master is not reachable.")
+                                        : errorMessage),
+                           true);
+            return;
+        }
+        startRosSubscriptions(generation);
+    }
+
+    void startRosSubscriptions(int generation) {
+        if (generation != subscriptionGeneration_ || !active_ || cards_.isEmpty()) {
+            return;
+        }
+        try {
+            ros::start();
+            nodeHandle_ = std::make_unique<ros::NodeHandle>();
+        } catch (const std::exception& ex) {
+            failConnection(generation,
+                           tr("Unable to start ROS image subscription: %1").arg(QString::fromUtf8(ex.what())),
+                           true);
+            return;
+        } catch (...) {
+            failConnection(generation,
+                           tr("Unable to start ROS image subscription."),
+                           true);
             return;
         }
 
-        nodeHandle_ = std::make_unique<ros::NodeHandle>();
+        setAllStatus(tr("Waiting for AirSim image...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
         for (Card& card : cards_) {
             const QString key = card.item.key;
             const QString topic = card.item.topic;
@@ -3425,9 +3616,13 @@ private:
         }
         spinner_ = std::make_unique<ros::AsyncSpinner>(1);
         spinner_->start();
+        startImageTimeout(generation);
     }
 
     void shutdownSubscriptions() {
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->stop();
+        }
         for (Card& card : cards_) {
             card.subscriber.shutdown();
         }
@@ -3438,7 +3633,43 @@ private:
         nodeHandle_.reset();
     }
 
+    void startImageTimeout(int generation) {
+        imageReceived_ = false;
+        imageTimeoutGeneration_ = generation;
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->start(kAirSimCameraConnectionTimeoutMs);
+        }
+    }
+
+    void onImageTimeout() {
+        if (imageReceived_ || imageTimeoutGeneration_ != subscriptionGeneration_) {
+            return;
+        }
+        failConnection(imageTimeoutGeneration_,
+                       tr("No image arrived on the selected drone camera topic before timeout. Start AirSim and airsim_node, then try again."),
+                       true);
+    }
+
+    void failConnection(int generation, const QString& detail, bool showDialog) {
+        if (generation != subscriptionGeneration_) {
+            return;
+        }
+        shutdownSubscriptions();
+        const QString message = tr("Unable to connect to AirSim camera stream.");
+        setAllStatus(QStringLiteral("%1\n%2").arg(message, detail));
+        if (showDialog && !connectionErrorDialogShown_) {
+            connectionErrorDialogShown_ = true;
+            QMessageBox::warning(window() ? window() : this,
+                                 tr("AirSim Camera Stream"),
+                                 QStringLiteral("%1\n\n%2").arg(message, detail));
+        }
+    }
+
     void updateImage(const QString& key, const QString& topic, const QImage& image) {
+        imageReceived_ = true;
+        if (imageTimeoutTimer_) {
+            imageTimeoutTimer_->stop();
+        }
         for (Card& card : cards_) {
             if (card.item.key != key) {
                 continue;
@@ -3492,6 +3723,11 @@ private:
     QSize cardSize_{420, 190};
     std::unique_ptr<ros::NodeHandle> nodeHandle_;
     std::unique_ptr<ros::AsyncSpinner> spinner_;
+    QTimer* imageTimeoutTimer_{nullptr};
+    int subscriptionGeneration_{0};
+    int imageTimeoutGeneration_{0};
+    bool imageReceived_{false};
+    bool connectionErrorDialogShown_{false};
 };
 
 MainWindow::MainWindow(QWidget* parent)
@@ -3691,9 +3927,9 @@ bool MainWindow::saveGuiConfigForClose() {
     QString path = currentGuiConfigPath_.trimmed();
     if (path.isEmpty()) {
         path = QFileDialog::getSaveFileName(this,
-                                            tr("Save GUI config"),
+                                            tr("Save SimART config"),
                                             QDir::home().filePath(QString::fromLatin1(kUntitledGuiConfigName) + QLatin1String(kGuiConfigExtension)),
-                                            tr("AirSim GUI Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
+                                            tr("SimART Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
         if (path.isEmpty()) {
             return false;
         }
@@ -3702,14 +3938,14 @@ bool MainWindow::saveGuiConfigForClose() {
 
     QString errorMessage;
     if (!saveGuiConfigToFile(path, &errorMessage)) {
-        QMessageBox::warning(this, tr("Save GUI Config"), errorMessage);
+        QMessageBox::warning(this, tr("Save SimART Config"), errorMessage);
         return false;
     }
     currentGuiConfigPath_ = path;
     guiConfigSessionActive_ = true;
     updateMainWindowTitle();
     setGuiConfigDirty(false);
-    onStatusMessage(tr("Saved GUI config: %1").arg(QFileInfo(path).fileName()));
+    onStatusMessage(tr("Saved SimART config: %1").arg(QFileInfo(path).fileName()));
     return true;
 }
 
@@ -3724,7 +3960,7 @@ bool MainWindow::promptSaveConfigOnClose() {
         : tr("Save the current configuration file?");
     const QMessageBox::StandardButton choice = QMessageBox::question(
         this,
-        tr("Save GUI Config"),
+        tr("Save SimART Config"),
         message,
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
         QMessageBox::Save);
@@ -3869,9 +4105,12 @@ void MainWindow::buildUi() {
 
 void MainWindow::buildMenuBar() {
     auto* fileMenu = menuBar()->addMenu(tr("File"));
-    openGuiConfigAction_ = fileMenu->addAction(tr("Open GUI Config..."), this, &MainWindow::openGuiConfig);
-    saveGuiConfigAction_ = fileMenu->addAction(tr("Save GUI Config"), this, &MainWindow::saveGuiConfig);
-    saveGuiConfigAsAction_ = fileMenu->addAction(tr("Save GUI Config As..."), this, &MainWindow::saveGuiConfigAs);
+    openGuiConfigAction_ = fileMenu->addAction(tr("Open SimART Config..."), this, &MainWindow::openGuiConfig);
+    saveGuiConfigAction_ = fileMenu->addAction(tr("Save SimART Config"), this, &MainWindow::saveGuiConfig);
+    saveGuiConfigAction_->setShortcut(QKeySequence::Save);
+    saveGuiConfigAction_->setShortcutContext(Qt::WindowShortcut);
+    addAction(saveGuiConfigAction_);
+    saveGuiConfigAsAction_ = fileMenu->addAction(tr("Save SimART Config As..."), this, &MainWindow::saveGuiConfigAs);
     fileMenu->addSeparator();
     loadSceneMeshAction_ = fileMenu->addAction(tr("Load Scene Mesh..."), this, &MainWindow::loadSceneMesh);
     importOsmSceneAction_ = fileMenu->addAction(tr("Search && Import OSM Area..."), this, &MainWindow::importOsmScene);
@@ -4246,10 +4485,10 @@ void MainWindow::buildRightDock() {
     airsimLiveFollowCheck_ = new QCheckBox(tr("Follow vehicle focus"), liveViewBox);
     airsimLiveFollowCheck_->setChecked(true);
     airsimLiveFpsSpin_ = new QDoubleSpinBox(liveViewBox);
-    airsimLiveFpsSpin_->setRange(1.0, 100.0);
+    airsimLiveFpsSpin_->setRange(1.0, static_cast<double>(kMaxGuiPreviewFps));
     airsimLiveFpsSpin_->setDecimals(1);
     airsimLiveFpsSpin_->setKeyboardTracking(false);
-    airsimLiveFpsSpin_->setValue(static_cast<double>(kDefaultCameraFps));
+    airsimLiveFpsSpin_->setValue(static_cast<double>(kDefaultGuiPreviewFps));
     airsimLiveFpsSpin_->hide();
     auto* cameraRow = new QWidget(liveViewBox);
     auto* cameraRowLayout = new QHBoxLayout(cameraRow);
@@ -4274,7 +4513,7 @@ void MainWindow::buildRightDock() {
     airsimSettingsPathValue_->setStyleSheet(QStringLiteral("color: #64748b;"));
     liveViewLayout->addRow(tr("Host"), airsimHostEdit_);
     liveViewLayout->addRow(tr("Port"), airsimPortEdit_);
-    liveViewLayout->addRow(tr("Camera"), cameraRow);
+    liveViewLayout->addRow(tr("Preview camera"), cameraRow);
     liveViewLayout->addRow(tr("Vehicle"), airsimLiveVehicleEdit_);
 
     auto* stationStreamBox = new QGroupBox(tr("Camera Streaming"), liveViewBox);
@@ -4283,7 +4522,7 @@ void MainWindow::buildRightDock() {
     stationCameraFpsTopicCombo_->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     stationCameraFpsTopicCombo_->setMinimumContentsLength(24);
     stationCameraFpsSpin_ = new QSpinBox(stationStreamBox);
-    stationCameraFpsSpin_->setRange(1, 100);
+    stationCameraFpsSpin_->setRange(1, kMaxCameraFps);
     stationCameraFpsSpin_->setKeyboardTracking(false);
     stationCameraFpsSpin_->setValue(kDefaultCameraFps);
     publishAllStationCameraTopicsButton_ = new QPushButton(tr("Publish All Topics"), stationStreamBox);
@@ -4956,13 +5195,14 @@ void MainWindow::syncAirSimLiveViewSettings() {
     airSimViewController_->setCameraName(airsimLiveCameraCombo_ ? airsimLiveCameraCombo_->currentText().trimmed() : QStringLiteral("front_center"));
     airSimViewController_->setVehicleName(airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString());
     airSimViewController_->setFollowVehicle(airsimLiveFollowCheck_ ? airsimLiveFollowCheck_->isChecked() : true);
-    airSimViewController_->setFramesPerSecond(airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps));
+    airSimViewController_->setFramesPerSecond(airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultGuiPreviewFps));
     airSimViewController_->setDepthFetchEnabled(false);
     airSimViewController_->setDisplayBrightness(currentAirSimBrightnessFactor());
     airSimViewController_->setPythonExecutable(simSettings_.pythonExecutable);
     if (stationEndpointChanged) {
         syncStationCameraWindows();
     }
+    refreshAirSimSettingsSyncStatus();
 }
 
 void MainWindow::onStationCameraFpsTopicChanged(int index) {
@@ -4972,11 +5212,12 @@ void MainWindow::onStationCameraFpsTopicChanged(int index) {
 
     const QString controlKey = stationCameraFpsTopicCombo_->itemData(index, Qt::UserRole).toString().trimmed();
     const QString rosTopic = stationCameraFpsTopicCombo_->itemData(index, Qt::UserRole + 1).toString().trimmed();
-    const int fpsValue = cameraFpsForControl(controlKey, rosTopic);
+    const int fpsValue = clampCameraFpsForControlKey(controlKey, cameraFpsForControl(controlKey, rosTopic));
 
     QSignalBlocker spinBlocker(stationCameraFpsSpin_);
     suppressStationCameraFpsControls_ = true;
     stationCameraFpsSpin_->setEnabled(!controlKey.isEmpty());
+    stationCameraFpsSpin_->setRange(1, maxCameraFpsForControlKey(controlKey));
     stationCameraFpsSpin_->setValue(fpsValue);
     suppressStationCameraFpsControls_ = false;
     applyCameraFpsForControl(controlKey, rosTopic, fpsValue, false);
@@ -5320,6 +5561,79 @@ QString MainWindow::currentAirSimSettingsPath(QString* errorMessage) const {
     return QString();
 }
 
+QString MainWindow::currentAirSimPreviewCameraName() const {
+    QString cameraName = airsimLiveCameraCombo_ ? airsimLiveCameraCombo_->currentText().trimmed() : QString();
+    if (cameraName.isEmpty() && airSimViewController_) {
+        cameraName = airSimViewController_->cameraName().trimmed();
+    }
+    return cameraName;
+}
+
+bool MainWindow::isStationExternalCameraName(const QString& cameraName) const {
+    const QString trimmed = cameraName.trimmed();
+    if (trimmed.isEmpty()) {
+        return false;
+    }
+    for (const BaseStation& station : stations_) {
+        if (stationExternalCameraName(station) == trimmed) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MainWindow::hasCustomAirSimPreviewExternalCamera(const QJsonObject& externalCameras) const {
+    const QString cameraName = currentAirSimPreviewCameraName();
+    if (cameraName.isEmpty()
+        || cameraName.compare(QLatin1String(kGuiPreviewCameraName), Qt::CaseInsensitive) == 0
+        || isStationExternalCameraName(cameraName)) {
+        return false;
+    }
+    return externalCameras.contains(cameraName) && externalCameras.value(cameraName).isObject();
+}
+
+bool MainWindow::missingAirSimGuiPreviewExternalCamera(const QString& settingsPath,
+                                                       QString* errorMessage) const {
+    if (errorMessage) {
+        errorMessage->clear();
+    }
+
+    QFile file(settingsPath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        if (errorMessage) {
+            *errorMessage = tr("Could not open %1").arg(settingsPath);
+        }
+        return false;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        if (errorMessage) {
+            *errorMessage = tr("Failed to parse %1: %2").arg(settingsPath, parseError.errorString());
+        }
+        return false;
+    }
+
+    const QJsonObject root = doc.object();
+    const QJsonValue externalValue = root.value(QStringLiteral("ExternalCameras"));
+    QJsonObject external;
+    if (!externalValue.isUndefined()) {
+        if (!externalValue.isObject()) {
+            if (errorMessage) {
+                *errorMessage = tr("ExternalCameras exists in %1 but is not a JSON object.").arg(settingsPath);
+            }
+            return false;
+        }
+        external = externalValue.toObject();
+    }
+
+    if (hasCustomAirSimPreviewExternalCamera(external)) {
+        return false;
+    }
+    return !external.contains(QString::fromLatin1(kGuiPreviewCameraName));
+}
+
 QVector<int> MainWindow::missingAirSimExternalCameraStationIndices(const QString& settingsPath,
                                                                    QString* errorMessage) const {
     if (errorMessage) {
@@ -5373,15 +5687,21 @@ QVector<int> MainWindow::missingAirSimExternalCameraStationIndices(const QString
     return missing;
 }
 
-QJsonObject MainWindow::buildAirSimExternalCameraEntries(const QVector<int>& stationIndices,
-                                                         int width,
-                                                         int height,
-                                                         int fovDeg) const {
-    const int clampedWidth = std::max(1, width);
-    const int clampedHeight = std::max(1, height);
-    const int clampedFov = std::max(1, std::min(179, fovDeg));
+QJsonObject MainWindow::buildAirSimExternalCameraEntries(
+    const QVector<int>& stationIndices,
+    const MainWindow::AirSimCameraCaptureConfig& stationCaptureConfig,
+    bool includeGuiPreview,
+    const MainWindow::AirSimCameraCaptureConfig& guiPreviewCaptureConfig) const {
+    const int stationWidth = std::max(1, stationCaptureConfig.width);
+    const int stationHeight = std::max(1, stationCaptureConfig.height);
+    const int stationFov = std::max(1, std::min(179, stationCaptureConfig.fovDeg));
 
     QJsonObject entries;
+    if (includeGuiPreview) {
+        entries[QString::fromLatin1(kGuiPreviewCameraName)] =
+            buildAirSimGuiPreviewExternalCameraEntry(guiPreviewCaptureConfig);
+    }
+
     QSet<QString> seenCameraNames;
     for (const int index : stationIndices) {
         if (index < 0 || index >= static_cast<int>(stations_.size())) {
@@ -5400,9 +5720,9 @@ QJsonObject MainWindow::buildAirSimExternalCameraEntries(const QVector<int>& sta
 
         QJsonObject captureSettings;
         captureSettings[QStringLiteral("ImageType")] = 0;
-        captureSettings[QStringLiteral("Width")] = clampedWidth;
-        captureSettings[QStringLiteral("Height")] = clampedHeight;
-        captureSettings[QStringLiteral("FOV_Degrees")] = clampedFov;
+        captureSettings[QStringLiteral("Width")] = stationWidth;
+        captureSettings[QStringLiteral("Height")] = stationHeight;
+        captureSettings[QStringLiteral("FOV_Degrees")] = stationFov;
 
         QJsonObject camera;
         camera[QStringLiteral("CaptureSettings")] = QJsonArray{captureSettings};
@@ -5418,11 +5738,35 @@ QJsonObject MainWindow::buildAirSimExternalCameraEntries(const QVector<int>& sta
     return entries;
 }
 
+QJsonObject MainWindow::buildAirSimGuiPreviewExternalCameraEntry(
+    const MainWindow::AirSimCameraCaptureConfig& captureConfig) const {
+    const int clampedWidth = std::max(1, captureConfig.width);
+    const int clampedHeight = std::max(1, captureConfig.height);
+    const int clampedFov = std::max(1, std::min(179, captureConfig.fovDeg));
+
+    QJsonObject captureSettings;
+    captureSettings[QStringLiteral("ImageType")] = 0;
+    captureSettings[QStringLiteral("Width")] = clampedWidth;
+    captureSettings[QStringLiteral("Height")] = clampedHeight;
+    captureSettings[QStringLiteral("FOV_Degrees")] = clampedFov;
+
+    QJsonObject camera;
+    camera[QStringLiteral("CaptureSettings")] = QJsonArray{captureSettings};
+    camera[QStringLiteral("PublishToRos")] = 0;
+    camera[QStringLiteral("X")] = -8.0;
+    camera[QStringLiteral("Y")] = 0.0;
+    camera[QStringLiteral("Z")] = -2.0;
+    camera[QStringLiteral("Pitch")] = 10;
+    camera[QStringLiteral("Roll")] = 0;
+    camera[QStringLiteral("Yaw")] = 0;
+    return camera;
+}
+
 bool MainWindow::buildAirSimSettingsPreview(const QString& settingsPath,
                                             const QVector<int>& stationIndices,
-                                            int width,
-                                            int height,
-                                            int fovDeg,
+                                            const MainWindow::AirSimCameraCaptureConfig& stationCaptureConfig,
+                                            bool includeGuiPreview,
+                                            const MainWindow::AirSimCameraCaptureConfig& guiPreviewCaptureConfig,
                                             QString* previewText,
                                             QVector<QPair<int, int>>* addedLineRanges,
                                             QString* errorMessage) const {
@@ -5468,7 +5812,10 @@ bool MainWindow::buildAirSimSettingsPreview(const QString& settingsPath,
         external = externalValue.toObject();
     }
 
-    const QJsonObject entries = buildAirSimExternalCameraEntries(stationIndices, width, height, fovDeg);
+    const QJsonObject entries = buildAirSimExternalCameraEntries(stationIndices,
+                                                                 stationCaptureConfig,
+                                                                 includeGuiPreview,
+                                                                 guiPreviewCaptureConfig);
     QJsonObject addedEntries;
     QStringList addedNames;
     for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
@@ -5554,9 +5901,9 @@ bool MainWindow::buildAirSimSettingsPreview(const QString& settingsPath,
 
 bool MainWindow::writeMissingAirSimExternalCameras(const QString& settingsPath,
                                                    const QVector<int>& stationIndices,
-                                                   int width,
-                                                   int height,
-                                                   int fovDeg,
+                                                   const MainWindow::AirSimCameraCaptureConfig& stationCaptureConfig,
+                                                   bool includeGuiPreview,
+                                                   const MainWindow::AirSimCameraCaptureConfig& guiPreviewCaptureConfig,
                                                    QString* backupPath,
                                                    QString* errorMessage) {
     if (backupPath) {
@@ -5571,9 +5918,9 @@ bool MainWindow::writeMissingAirSimExternalCameras(const QString& settingsPath,
     QString previewError;
     if (!buildAirSimSettingsPreview(settingsPath,
                                     stationIndices,
-                                    width,
-                                    height,
-                                    fovDeg,
+                                    stationCaptureConfig,
+                                    includeGuiPreview,
+                                    guiPreviewCaptureConfig,
                                     &updatedText,
                                     &addedRanges,
                                     &previewError)) {
@@ -5637,9 +5984,20 @@ void MainWindow::refreshAirSimSettingsSyncStatus() {
     QString pathError;
     const QString settingsPath = currentAirSimSettingsPath(&pathError);
     if (settingsPath.isEmpty()) {
-        const bool shouldShow = !stations_.empty();
+        const QString previewCameraName = currentAirSimPreviewCameraName();
+        const bool shouldShow = !stations_.empty()
+            || previewCameraName.compare(QLatin1String(kGuiPreviewCameraName), Qt::CaseInsensitive) == 0;
         airsimSettingsSyncPanel_->setVisible(shouldShow);
         airsimSettingsSyncHintLabel_->setText(pathError);
+        syncAirSimSettingsButton_->setEnabled(false);
+        return;
+    }
+
+    QString guiPreviewError;
+    const bool missingGuiPreview = missingAirSimGuiPreviewExternalCamera(settingsPath, &guiPreviewError);
+    if (!guiPreviewError.trimmed().isEmpty()) {
+        airsimSettingsSyncPanel_->show();
+        airsimSettingsSyncHintLabel_->setText(guiPreviewError);
         syncAirSimSettingsButton_->setEnabled(false);
         return;
     }
@@ -5653,22 +6011,30 @@ void MainWindow::refreshAirSimSettingsSyncStatus() {
         return;
     }
 
-    if (missing.isEmpty()) {
+    if (!missingGuiPreview && missing.isEmpty()) {
         airsimSettingsSyncPanel_->hide();
         return;
     }
 
+    QStringList missingParts;
+    if (missingGuiPreview) {
+        missingParts << QString::fromLatin1(kGuiPreviewCameraName);
+    }
     QStringList names;
     for (const int index : missing) {
         if (index >= 0 && index < static_cast<int>(stations_.size())) {
             names << stationExternalCameraName(stations_[static_cast<size_t>(index)]);
         }
     }
+    if (!names.isEmpty()) {
+        missingParts << tr("%1 station external camera(s): %2")
+                            .arg(missing.size())
+                            .arg(names.join(QStringLiteral(", ")));
+    }
     airsimSettingsSyncPanel_->show();
     airsimSettingsSyncHintLabel_->setText(
-        tr("AirSim settings.json is missing %1 station external camera(s): %2. Sync settings.json before using these station previews.")
-            .arg(missing.size())
-            .arg(names.join(QStringLiteral(", "))));
+        tr("AirSim settings.json is missing %1. Sync settings.json before using these UE preview camera(s).")
+            .arg(missingParts.join(QStringLiteral("; "))));
     syncAirSimSettingsButton_->setEnabled(true);
 }
 
@@ -5681,6 +6047,14 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
         return;
     }
 
+    QString guiPreviewError;
+    const bool missingGuiPreview = missingAirSimGuiPreviewExternalCamera(settingsPath, &guiPreviewError);
+    if (!guiPreviewError.trimmed().isEmpty()) {
+        QMessageBox::warning(this, tr("Sync AirSim Settings"), guiPreviewError);
+        refreshAirSimSettingsSyncStatus();
+        return;
+    }
+
     QString missingError;
     const QVector<int> missing = missingAirSimExternalCameraStationIndices(settingsPath, &missingError);
     if (!missingError.trimmed().isEmpty()) {
@@ -5688,9 +6062,9 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
         refreshAirSimSettingsSyncStatus();
         return;
     }
-    if (missing.isEmpty()) {
+    if (!missingGuiPreview && missing.isEmpty()) {
         QMessageBox::information(this, tr("Sync AirSim Settings"),
-                                 tr("AirSim settings.json already contains all station external cameras."));
+                                 tr("AirSim settings.json already contains all required UE preview cameras."));
         refreshAirSimSettingsSyncStatus();
         return;
     }
@@ -5701,7 +6075,7 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
     auto* layout = new QVBoxLayout(&dialog);
 
     auto* intro = new QLabel(
-        tr("Only missing entries under ExternalCameras will be added. Existing settings and unused cameras will not be deleted."),
+        tr("Only missing entries under ExternalCameras will be added, including GuiPreview when the UE live view needs it. Existing settings and unused cameras will not be deleted."),
         &dialog);
     intro->setWordWrap(true);
     layout->addWidget(intro);
@@ -5720,24 +6094,47 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
     auto* controls = new QWidget(&dialog);
     auto* controlsLayout = new QHBoxLayout(controls);
     controlsLayout->setContentsMargins(0, 0, 0, 0);
-    auto* widthSpin = new QSpinBox(controls);
-    widthSpin->setRange(1, 8192);
-    widthSpin->setKeyboardTracking(false);
-    widthSpin->setValue(1280);
-    auto* heightSpin = new QSpinBox(controls);
-    heightSpin->setRange(1, 8192);
-    heightSpin->setKeyboardTracking(false);
-    heightSpin->setValue(720);
-    auto* fovSpin = new QSpinBox(controls);
-    fovSpin->setRange(1, 179);
-    fovSpin->setKeyboardTracking(false);
-    fovSpin->setValue(90);
-    controlsLayout->addWidget(new QLabel(tr("Width"), controls));
-    controlsLayout->addWidget(widthSpin);
-    controlsLayout->addWidget(new QLabel(tr("Height"), controls));
-    controlsLayout->addWidget(heightSpin);
-    controlsLayout->addWidget(new QLabel(tr("FOV"), controls));
-    controlsLayout->addWidget(fovSpin);
+    controlsLayout->setSpacing(8);
+    QSpinBox* guiWidthSpin = nullptr;
+    QSpinBox* guiHeightSpin = nullptr;
+    QSpinBox* guiFovSpin = nullptr;
+    QSpinBox* stationWidthSpin = nullptr;
+    QSpinBox* stationHeightSpin = nullptr;
+    QSpinBox* stationFovSpin = nullptr;
+    auto createCaptureGroup = [&](const QString& title,
+                                  QSpinBox*& widthSpin,
+                                  QSpinBox*& heightSpin,
+                                  QSpinBox*& fovSpin) {
+        auto* group = new QGroupBox(title, controls);
+        auto* groupLayout = new QHBoxLayout(group);
+        groupLayout->setContentsMargins(8, 6, 8, 6);
+        groupLayout->setSpacing(6);
+        widthSpin = new QSpinBox(group);
+        widthSpin->setRange(1, 8192);
+        widthSpin->setKeyboardTracking(false);
+        widthSpin->setValue(1280);
+        heightSpin = new QSpinBox(group);
+        heightSpin->setRange(1, 8192);
+        heightSpin->setKeyboardTracking(false);
+        heightSpin->setValue(720);
+        fovSpin = new QSpinBox(group);
+        fovSpin->setRange(1, 179);
+        fovSpin->setKeyboardTracking(false);
+        fovSpin->setValue(90);
+        groupLayout->addWidget(new QLabel(tr("Width"), group));
+        groupLayout->addWidget(widthSpin);
+        groupLayout->addWidget(new QLabel(tr("Height"), group));
+        groupLayout->addWidget(heightSpin);
+        groupLayout->addWidget(new QLabel(tr("FOV"), group));
+        groupLayout->addWidget(fovSpin);
+        controlsLayout->addWidget(group);
+    };
+    if (missingGuiPreview) {
+        createCaptureGroup(tr("GuiPreview image settings"), guiWidthSpin, guiHeightSpin, guiFovSpin);
+    }
+    if (!missing.isEmpty()) {
+        createCaptureGroup(tr("Base-station image settings"), stationWidthSpin, stationHeightSpin, stationFovSpin);
+    }
     controlsLayout->addStretch(1);
     layout->addWidget(controls);
 
@@ -5747,15 +6144,35 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
     connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     layout->addWidget(buttons);
 
+    auto captureConfigFromSpins = [](QSpinBox* widthSpin,
+                                     QSpinBox* heightSpin,
+                                     QSpinBox* fovSpin) {
+        AirSimCameraCaptureConfig config;
+        if (widthSpin) {
+            config.width = widthSpin->value();
+        }
+        if (heightSpin) {
+            config.height = heightSpin->value();
+        }
+        if (fovSpin) {
+            config.fovDeg = fovSpin->value();
+        }
+        return config;
+    };
+
     auto updatePreview = [&]() {
         QString previewText;
         QVector<QPair<int, int>> addedRanges;
         QString previewError;
+        const AirSimCameraCaptureConfig guiPreviewConfig =
+            captureConfigFromSpins(guiWidthSpin, guiHeightSpin, guiFovSpin);
+        const AirSimCameraCaptureConfig stationConfig =
+            captureConfigFromSpins(stationWidthSpin, stationHeightSpin, stationFovSpin);
         const bool ok = buildAirSimSettingsPreview(settingsPath,
                                                    missing,
-                                                   widthSpin->value(),
-                                                   heightSpin->value(),
-                                                   fovSpin->value(),
+                                                   stationConfig,
+                                                   missingGuiPreview,
+                                                   guiPreviewConfig,
                                                    &previewText,
                                                    &addedRanges,
                                                    &previewError);
@@ -5796,26 +6213,47 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
             });
         }
     };
-    connect(widthSpin, QOverload<int>::of(&QSpinBox::valueChanged), &dialog, [&](int) { updatePreview(); });
-    connect(heightSpin, QOverload<int>::of(&QSpinBox::valueChanged), &dialog, [&](int) { updatePreview(); });
-    connect(fovSpin, QOverload<int>::of(&QSpinBox::valueChanged), &dialog, [&](int) { updatePreview(); });
+    auto connectCaptureSpin = [&](QSpinBox* spin) {
+        if (spin) {
+            connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), &dialog, [&](int) { updatePreview(); });
+        }
+    };
+    connectCaptureSpin(guiWidthSpin);
+    connectCaptureSpin(guiHeightSpin);
+    connectCaptureSpin(guiFovSpin);
+    connectCaptureSpin(stationWidthSpin);
+    connectCaptureSpin(stationHeightSpin);
+    connectCaptureSpin(stationFovSpin);
     updatePreview();
 
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
 
-    widthSpin->interpretText();
-    heightSpin->interpretText();
-    fovSpin->interpretText();
+    auto interpretSpinText = [](QSpinBox* spin) {
+        if (spin) {
+            spin->interpretText();
+        }
+    };
+    interpretSpinText(guiWidthSpin);
+    interpretSpinText(guiHeightSpin);
+    interpretSpinText(guiFovSpin);
+    interpretSpinText(stationWidthSpin);
+    interpretSpinText(stationHeightSpin);
+    interpretSpinText(stationFovSpin);
+
+    const AirSimCameraCaptureConfig guiPreviewConfig =
+        captureConfigFromSpins(guiWidthSpin, guiHeightSpin, guiFovSpin);
+    const AirSimCameraCaptureConfig stationConfig =
+        captureConfigFromSpins(stationWidthSpin, stationHeightSpin, stationFovSpin);
 
     QString backupPath;
     QString writeError;
     if (!writeMissingAirSimExternalCameras(settingsPath,
                                            missing,
-                                           widthSpin->value(),
-                                           heightSpin->value(),
-                                           fovSpin->value(),
+                                           stationConfig,
+                                           missingGuiPreview,
+                                           guiPreviewConfig,
                                            &backupPath,
                                            &writeError)) {
         QMessageBox::warning(this, tr("Sync AirSim Settings"), writeError);
@@ -5830,8 +6268,8 @@ void MainWindow::syncAirSimSettingsExternalCameras() {
         this,
         tr("Sync AirSim Settings"),
         backupPath.isEmpty()
-            ? tr("No missing station external cameras remained to add.")
-            : tr("Added missing station external cameras to settings.json.\nBackup: %1").arg(backupPath));
+            ? tr("No missing UE preview cameras remained to add.")
+            : tr("Added missing UE preview camera definitions to settings.json.\nBackup: %1").arg(backupPath));
 }
 
 void MainWindow::ensureRfDataWindow() {
@@ -8037,9 +8475,11 @@ void MainWindow::syncStationCameraFpsControls() {
         stationCameraFpsTopicCombo_->setCurrentIndex(comboIndex);
         activeControlKey = stationCameraFpsTopicCombo_->itemData(comboIndex, Qt::UserRole).toString().trimmed();
         activeRosTopic = stationCameraFpsTopicCombo_->itemData(comboIndex, Qt::UserRole + 1).toString().trimmed();
-        fpsValue = cameraFpsForControl(activeControlKey, activeRosTopic);
+        fpsValue = clampCameraFpsForControlKey(activeControlKey, cameraFpsForControl(activeControlKey, activeRosTopic));
+        stationCameraFpsSpin_->setRange(1, maxCameraFpsForControlKey(activeControlKey));
         stationCameraFpsSpin_->setValue(fpsValue);
     } else {
+        stationCameraFpsSpin_->setRange(1, kMaxCameraFps);
         stationCameraFpsSpin_->setValue(kDefaultCameraFps);
     }
 
@@ -8050,15 +8490,27 @@ void MainWindow::syncStationCameraFpsControls() {
 int MainWindow::cameraFpsForControl(const QString& controlKey, const QString& rosTopic) const {
     Q_UNUSED(rosTopic);
     const QString key = controlKey.trimmed();
-    if (!key.isEmpty() && cameraFpsOverrides_.contains(key)) {
-        return std::max(1, std::min(100, cameraFpsOverrides_.value(key, kDefaultCameraFps)));
-    }
-    if (key == QLatin1String(kCameraFpsGuiPreviewKey)) {
-        const double fps = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps);
-        return std::max(1, std::min(100, static_cast<int>(std::lround(fps))));
+    if (isGuiPreviewFpsKey(key)) {
+        if (cameraFpsOverrides_.contains(key)) {
+            return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, kDefaultGuiPreviewFps));
+        }
+        const double fps = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultGuiPreviewFps);
+        return clampCameraFpsForControlKey(key, static_cast<int>(std::lround(fps)));
     }
     const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
     if (key.startsWith(stationPrefix)) {
+        const QString stationKey = key.mid(stationPrefix.size());
+        const int stationIndex = stationIndexForKey(stationKey);
+        if (stationIndex >= 0 && stationIndex < static_cast<int>(stations_.size())) {
+            const int fps = static_cast<int>(std::lround(stations_[static_cast<size_t>(stationIndex)].previewFps));
+            return clampCameraFpsForControlKey(key, fps > 0 ? fps : kDefaultCameraFps);
+        }
+        return kDefaultCameraFps;
+    }
+    if (!key.isEmpty() && cameraFpsOverrides_.contains(key)) {
+        return clampCameraFpsForControlKey(key, cameraFpsOverrides_.value(key, defaultCameraFpsForControlKey(key)));
+    }
+    if (!key.isEmpty()) {
         return kDefaultCameraFps;
     }
     return kDefaultCameraFps;
@@ -8073,7 +8525,7 @@ void MainWindow::setAirsimImageTopicFpsLimit(const QString& rosTopic, int fps) {
     if (topic.isEmpty()) {
         return;
     }
-    const int clampedFps = std::max(1, std::min(100, fps));
+    const int clampedFps = std::max(1, std::min(kMaxCameraFps, fps));
     const QString paramName = imageTopicFpsParamName(topic);
     if (airsimImageTopicFpsLastApplied_.value(paramName, -1) == clampedFps) {
         return;
@@ -8093,12 +8545,15 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
     if (key.isEmpty()) {
         return;
     }
-    const int clampedFps = std::max(1, std::min(100, fps));
-    const bool overrideChanged = !cameraFpsOverrides_.contains(key)
-        || cameraFpsOverrides_.value(key) != clampedFps;
-    cameraFpsOverrides_[key] = clampedFps;
+    const int clampedFps = clampCameraFpsForControlKey(key, fps);
+    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
 
-    if (key == QLatin1String(kCameraFpsGuiPreviewKey)) {
+    if (isGuiPreviewFpsKey(key)) {
+        const bool overrideChanged = !cameraFpsOverrides_.contains(key)
+            || cameraFpsOverrides_.value(key) != clampedFps;
+        if (showStatus) {
+            cameraFpsOverrides_[key] = clampedFps;
+        }
         if (airsimLiveFpsSpin_) {
             QSignalBlocker blocker(airsimLiveFpsSpin_);
             airsimLiveFpsSpin_->setValue(static_cast<double>(clampedFps));
@@ -8119,7 +8574,6 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
         setAirsimImageTopicFpsLimit(rosTopic, clampedFps);
     }
 
-    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
     if (key.startsWith(stationPrefix)) {
         const QString stationKey = key.mid(stationPrefix.size());
         const int stationIndex = stationIndexForKey(stationKey);
@@ -8131,17 +8585,26 @@ void MainWindow::applyCameraFpsForControl(const QString& controlKey,
         if (window && window->view && window->view->controller()) {
             window->view->controller()->setFramesPerSecond(normalizedFps);
         }
+        const bool stationFpsChanged =
+            std::abs(stations_[static_cast<size_t>(stationIndex)].previewFps - normalizedFps) > 1e-9;
+        if (showStatus && stationFpsChanged) {
+            stations_[static_cast<size_t>(stationIndex)].previewFps = normalizedFps;
+            markBaseStationsDirty();
+            refreshInfoPanel();
+        }
         if (showStatus) {
             onStatusMessage(tr("Updated station camera FPS for %1 to %2 fps.")
                                 .arg(stations_[static_cast<size_t>(stationIndex)].name)
                                 .arg(clampedFps));
         }
-        if (showStatus && overrideChanged) {
-            markGuiConfigDirty();
-        }
         return;
     }
 
+    const bool overrideChanged = !cameraFpsOverrides_.contains(key)
+        || cameraFpsOverrides_.value(key) != clampedFps;
+    if (showStatus) {
+        cameraFpsOverrides_[key] = clampedFps;
+    }
     if (showStatus && !rosTopic.trimmed().isEmpty()) {
         onStatusMessage(tr("Updated ROS camera FPS for %1 to %2 fps.")
                             .arg(normalizedRosTopicName(rosTopic))
@@ -8648,6 +9111,13 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
 
     const QString configFilePath = normalizedGuiConfigPath(filePath);
     ensureRosbagToolsWindow();
+    if (stationCameraFpsTopicCombo_ && stationCameraFpsSpin_) {
+        stationCameraFpsSpin_->interpretText();
+        const QString key = stationCameraFpsTopicCombo_->currentData(Qt::UserRole).toString().trimmed();
+        if (key.startsWith(QLatin1String(kCameraFpsRosTopicPrefix))) {
+            cameraFpsOverrides_[key] = clampCameraFpsForControlKey(key, stationCameraFpsSpin_->value());
+        }
+    }
 
     QJsonObject root;
     root[QStringLiteral("format")] = QStringLiteral("airsim_gui_UErealtime_config");
@@ -8672,11 +9142,6 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     }
     root[QStringLiteral("layer_states")] = layerStates;
 
-    QJsonArray baseStationsArray;
-    for (const auto& station : stations_) {
-        baseStationsArray.push_back(baseStationToJson(station));
-    }
-    root[QStringLiteral("base_stations")] = baseStationsArray;
     root[QStringLiteral("simulation_settings")] = simulationSettingsToJson(simSettings_);
     root[QStringLiteral("ckm_settings")] = ckmSettingsToJson(ckmSettings_);
     root[QStringLiteral("coordinate_transforms")] = coordinateTransformSettingsToJson(coordinateTransforms_);
@@ -8688,15 +9153,48 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     liveView[QStringLiteral("camera_name")] = airsimLiveCameraCombo_ ? airsimLiveCameraCombo_->currentText().trimmed() : QString();
     liveView[QStringLiteral("vehicle_name")] = airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString();
     liveView[QStringLiteral("follow_vehicle_focus")] = airsimLiveFollowCheck_ ? airsimLiveFollowCheck_->isChecked() : true;
-    liveView[QStringLiteral("live_fps")] = airsimLiveFpsSpin_ ? airsimLiveFpsSpin_->value() : static_cast<double>(kDefaultCameraFps);
+    liveView[QStringLiteral("live_fps")] = airsimLiveFpsSpin_
+        ? static_cast<double>(clampCameraFpsForControlKey(QString::fromLatin1(kCameraFpsGuiPreviewKey),
+                                                          static_cast<int>(std::lround(airsimLiveFpsSpin_->value()))))
+        : static_cast<double>(kDefaultGuiPreviewFps);
     liveView[QStringLiteral("brightness_percent")] = airsimBrightnessSlider_ ? airsimBrightnessSlider_->value() : 100;
     root[QStringLiteral("live_view")] = liveView;
 
     QJsonObject cameraFpsOverrides;
+    const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
+    const QString guiPreviewKey = QString::fromLatin1(kCameraFpsGuiPreviewKey);
+    const QString rosPrefix = QString::fromLatin1(kCameraFpsRosTopicPrefix);
+    QSet<QString> serializedCameraFpsKeys;
+    bool serializedCurrentRosImageItems = false;
+    QString settingsParseError;
+    const QString preferredVehicle = airsimLiveVehicleEdit_ ? airsimLiveVehicleEdit_->text().trimmed() : QString();
+    for (const QString& candidate : effectiveAirSimSettingsPaths()) {
+        if (!QFileInfo::exists(candidate)) {
+            continue;
+        }
+        const QVector<CameraFpsControlItem> rosImageItems =
+            parseAirSimRosImageTopicItems(candidate, preferredVehicle, &settingsParseError);
+        for (const CameraFpsControlItem& item : rosImageItems) {
+            const QString key = item.controlKey.trimmed();
+            if (key.isEmpty()) {
+                continue;
+            }
+            cameraFpsOverrides[key] = cameraFpsForControl(key, item.rosTopic);
+            serializedCameraFpsKeys.insert(key);
+        }
+        if (!rosImageItems.isEmpty()) {
+            serializedCurrentRosImageItems = true;
+            break;
+        }
+    }
     for (auto it = cameraFpsOverrides_.cbegin(); it != cameraFpsOverrides_.cend(); ++it) {
         const QString key = it.key().trimmed();
-        if (!key.isEmpty()) {
-            cameraFpsOverrides[key] = std::max(1, std::min(100, it.value()));
+        if (!key.isEmpty()
+            && !serializedCameraFpsKeys.contains(key)
+            && !key.startsWith(stationPrefix)
+            && !(serializedCurrentRosImageItems && key.startsWith(rosPrefix))
+            && key != guiPreviewKey) {
+            cameraFpsOverrides[key] = clampCameraFpsForControlKey(key, it.value());
         }
     }
     root[QStringLiteral("camera_fps_overrides")] = cameraFpsOverrides;
@@ -8740,13 +9238,13 @@ bool MainWindow::saveGuiConfigToFile(const QString& filePath, QString* errorMess
     QFile file(configFilePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         if (errorMessage) {
-            *errorMessage = tr("Could not write GUI config: %1").arg(configFilePath);
+            *errorMessage = tr("Could not write SimART config: %1").arg(configFilePath);
         }
         return false;
     }
     if (file.write(QJsonDocument(root).toJson(QJsonDocument::Indented)) < 0) {
         if (errorMessage) {
-            *errorMessage = tr("Failed to serialize GUI config: %1").arg(configFilePath);
+            *errorMessage = tr("Failed to serialize SimART config: %1").arg(configFilePath);
         }
         return false;
     }
@@ -8768,7 +9266,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         if (errorMessage) {
-            *errorMessage = tr("Could not open GUI config: %1").arg(filePath);
+            *errorMessage = tr("Could not open SimART config: %1").arg(filePath);
         }
         return false;
     }
@@ -8777,7 +9275,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
         if (errorMessage) {
-            *errorMessage = tr("GUI config parse failed: %1").arg(parseError.errorString());
+            *errorMessage = tr("SimART config parse failed: %1").arg(parseError.errorString());
         }
         return false;
     }
@@ -8786,7 +9284,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     const QString format = root.value(QStringLiteral("format")).toString();
     if (!format.isEmpty() && format != QStringLiteral("airsim_gui_UErealtime_config")) {
         if (errorMessage) {
-            *errorMessage = tr("Unsupported GUI config format: %1").arg(format);
+            *errorMessage = tr("Unsupported SimART config format: %1").arg(format);
         }
         return false;
     }
@@ -8835,7 +9333,24 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
         importedSceneMeshPathProvided = true;
     }
 
-    if (root.contains(QStringLiteral("base_stations")) && root.value(QStringLiteral("base_stations")).isArray()) {
+    bool baseStationsLoaded = false;
+    if (!baseStationsConfigPath_.trimmed().isEmpty()) {
+        std::vector<BaseStation> loadedStations;
+        QString stationError;
+        if (!JsonConfig::loadBaseStations(baseStationsConfigPath_, loadedStations, &stationError)) {
+            if (errorMessage) {
+                *errorMessage = tr("Failed to load base-station JSON %1: %2")
+                                    .arg(baseStationsConfigPath_, stationError);
+            }
+            return false;
+        }
+        applyBaseStations(loadedStations);
+        baseStationsLoaded = true;
+    }
+
+    if (!baseStationsLoaded
+        && root.contains(QStringLiteral("base_stations"))
+        && root.value(QStringLiteral("base_stations")).isArray()) {
         std::vector<BaseStation> loadedStations;
         const QJsonArray array = root.value(QStringLiteral("base_stations")).toArray();
         loadedStations.reserve(static_cast<size_t>(array.size()));
@@ -8845,6 +9360,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
             }
         }
         applyBaseStations(loadedStations);
+        baseStationsLoaded = true;
     }
 
     if (root.contains(QStringLiteral("layer_states")) && root.value(QStringLiteral("layer_states")).isObject() && layerTree_) {
@@ -8872,7 +9388,11 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
         if (airsimLiveCameraCombo_ && liveView.contains(QStringLiteral("camera_name"))) airsimLiveCameraCombo_->setEditText(liveView.value(QStringLiteral("camera_name")).toString());
         if (airsimLiveVehicleEdit_ && liveView.contains(QStringLiteral("vehicle_name"))) airsimLiveVehicleEdit_->setText(liveView.value(QStringLiteral("vehicle_name")).toString());
         if (airsimLiveFollowCheck_ && liveView.contains(QStringLiteral("follow_vehicle_focus"))) airsimLiveFollowCheck_->setChecked(liveView.value(QStringLiteral("follow_vehicle_focus")).toBool(true));
-        if (airsimLiveFpsSpin_ && liveView.contains(QStringLiteral("live_fps"))) airsimLiveFpsSpin_->setValue(liveView.value(QStringLiteral("live_fps")).toDouble(static_cast<double>(kDefaultCameraFps)));
+        if (airsimLiveFpsSpin_ && liveView.contains(QStringLiteral("live_fps"))) {
+            const int fps = clampCameraFpsForControlKey(QString::fromLatin1(kCameraFpsGuiPreviewKey),
+                                                        static_cast<int>(std::lround(liveView.value(QStringLiteral("live_fps")).toDouble(static_cast<double>(kDefaultGuiPreviewFps)))));
+            airsimLiveFpsSpin_->setValue(static_cast<double>(fps));
+        }
         if (airsimBrightnessSlider_ && liveView.contains(QStringLiteral("brightness_percent"))) airsimBrightnessSlider_->setValue(liveView.value(QStringLiteral("brightness_percent")).toInt(100));
     } else {
         setSelectedAirSimSettingsPath(QString());
@@ -8881,18 +9401,19 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     cameraFpsOverrides_.clear();
     if (root.contains(QStringLiteral("camera_fps_overrides")) && root.value(QStringLiteral("camera_fps_overrides")).isObject()) {
         const QJsonObject cameraFpsOverrides = root.value(QStringLiteral("camera_fps_overrides")).toObject();
+        const QString stationPrefix = QString::fromLatin1(kCameraFpsStationPrefix);
         for (auto it = cameraFpsOverrides.begin(); it != cameraFpsOverrides.end(); ++it) {
             const QString key = it.key().trimmed();
-            if (key.isEmpty()) {
+            if (key.isEmpty() || key.startsWith(stationPrefix)) {
                 continue;
             }
-            const int fps = std::max(1, std::min(100, it.value().toInt(kDefaultCameraFps)));
+            const int fps = clampCameraFpsForControlKey(key, it.value().toInt(defaultCameraFpsForControlKey(key)));
             cameraFpsOverrides_[key] = fps;
         }
     }
     const QString guiPreviewFpsKey = QString::fromLatin1(kCameraFpsGuiPreviewKey);
     if (airsimLiveFpsSpin_ && cameraFpsOverrides_.contains(guiPreviewFpsKey)) {
-        airsimLiveFpsSpin_->setValue(static_cast<double>(cameraFpsOverrides_.value(guiPreviewFpsKey, kDefaultCameraFps)));
+        airsimLiveFpsSpin_->setValue(static_cast<double>(cameraFpsOverrides_.value(guiPreviewFpsKey, kDefaultGuiPreviewFps)));
     }
 
     if (root.contains(QStringLiteral("rosbag_record")) && root.value(QStringLiteral("rosbag_record")).isObject()) {
@@ -9008,16 +9529,16 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
                     applySceneBundle(bundle, QStringLiteral("File mesh: %1").arg(resolvedScenePath));
                 } else {
                     clearSceneGeometry();
-                    QMessageBox::warning(this, tr("Open GUI Config"),
-                                         tr("Loaded the GUI config, but failed to restore the saved 3D scene.\n\n%1")
+                    QMessageBox::warning(this, tr("Open SimART Config"),
+                                         tr("Loaded the SimART config, but failed to restore the saved 3D scene.\n\n%1")
                                              .arg(bundle.errorMessage.trimmed().isEmpty()
                                                       ? resolvedScenePath
                                                       : bundle.errorMessage));
                 }
             } else {
                 clearSceneGeometry();
-                QMessageBox::warning(this, tr("Open GUI Config"),
-                                     tr("Loaded the GUI config, but the saved 3D scene file is missing or unsupported.\n\n%1")
+                QMessageBox::warning(this, tr("Open SimART Config"),
+                                     tr("Loaded the SimART config, but the saved 3D scene file is missing or unsupported.\n\n%1")
                                          .arg(resolvedScenePath));
             }
         }
@@ -9027,7 +9548,7 @@ bool MainWindow::loadGuiConfigFromFile(const QString& filePath, QString* errorMe
     clearBaseStationUndoHistory();
     setGuiConfigDirty(false);
     setBaseStationsDirty(false);
-    onStatusMessage(tr("Loaded GUI config: %1").arg(QFileInfo(filePath).fileName()));
+    onStatusMessage(tr("Loaded SimART config: %1").arg(QFileInfo(filePath).fileName()));
     return true;
 }
 
@@ -9035,19 +9556,19 @@ void MainWindow::openGuiConfig() {
     const QString startPath = currentGuiConfigPath_.trimmed().isEmpty()
         ? QDir::home().filePath(QStringLiteral("airsim_gui_config") + QLatin1String(kGuiConfigExtension))
         : currentGuiConfigPath_;
-    const QString path = QFileDialog::getOpenFileName(this, tr("Open GUI config"), startPath,
-        tr("AirSim GUI Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
+    const QString path = QFileDialog::getOpenFileName(this, tr("Open SimART config"), startPath,
+        tr("SimART Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
     if (path.isEmpty()) {
         return;
     }
     if (!promptSaveBaseStationsJsonIfDirty(
-            tr("The current base-station JSON has unsaved changes. Save it before opening another GUI config?"))) {
+            tr("The current base-station JSON has unsaved changes. Save it before opening another SimART config?"))) {
         return;
     }
 
     QString errorMessage;
     if (!loadGuiConfigFromFile(path, &errorMessage)) {
-        QMessageBox::warning(this, tr("Open GUI Config"), errorMessage);
+        QMessageBox::warning(this, tr("Open SimART Config"), errorMessage);
         return;
     }
     currentGuiConfigPath_ = normalizedGuiConfigPath(path);
@@ -9062,42 +9583,50 @@ void MainWindow::saveGuiConfig() {
         saveGuiConfigAs();
         return;
     }
+    if (!promptSaveBaseStationsJsonIfDirty(
+            tr("The base-station JSON has unsaved changes. Save it before saving the SimART config?"))) {
+        return;
+    }
 
     QString errorMessage;
     if (!saveGuiConfigToFile(currentGuiConfigPath_, &errorMessage)) {
-        QMessageBox::warning(this, tr("Save GUI Config"), errorMessage);
+        QMessageBox::warning(this, tr("Save SimART Config"), errorMessage);
         return;
     }
     setGuiConfigDirty(false);
-    onStatusMessage(tr("Saved GUI config: %1").arg(QFileInfo(currentGuiConfigPath_).fileName()));
+    onStatusMessage(tr("Saved SimART config: %1").arg(QFileInfo(currentGuiConfigPath_).fileName()));
 }
 
 void MainWindow::saveGuiConfigAs() {
     const QString startPath = currentGuiConfigPath_.trimmed().isEmpty()
         ? QDir::home().filePath(QString::fromLatin1(kUntitledGuiConfigName) + QLatin1String(kGuiConfigExtension))
         : currentGuiConfigPath_;
-    QString path = QFileDialog::getSaveFileName(this, tr("Save GUI config as"), startPath,
-        tr("AirSim GUI Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
+    QString path = QFileDialog::getSaveFileName(this, tr("Save SimART config as"), startPath,
+        tr("SimART Config (*%1)").arg(QLatin1String(kGuiConfigExtension)));
     if (path.isEmpty()) {
         return;
     }
     path = normalizedGuiConfigPath(path);
+    if (!promptSaveBaseStationsJsonIfDirty(
+            tr("The base-station JSON has unsaved changes. Save it before saving the SimART config?"))) {
+        return;
+    }
 
     QString errorMessage;
     if (!saveGuiConfigToFile(path, &errorMessage)) {
-        QMessageBox::warning(this, tr("Save GUI Config"), errorMessage);
+        QMessageBox::warning(this, tr("Save SimART Config"), errorMessage);
         return;
     }
     currentGuiConfigPath_ = path;
     guiConfigSessionActive_ = true;
     updateMainWindowTitle();
     setGuiConfigDirty(false);
-    onStatusMessage(tr("Saved GUI config: %1").arg(QFileInfo(path).fileName()));
+    onStatusMessage(tr("Saved SimART config: %1").arg(QFileInfo(path).fileName()));
 }
 
 void MainWindow::promptStartupConfigChoice() {
     QMessageBox box(this);
-    box.setWindowTitle(tr("GUI Config"));
+    box.setWindowTitle(tr("SimART Config"));
     box.setIcon(QMessageBox::Question);
     box.setText(tr("Choose how to start."));
     box.setInformativeText(tr("New Config uses the default settings first. You will choose the .agcfg location when you save or close the GUI. Open Existing Config loads an existing configuration immediately."));
@@ -9116,7 +9645,7 @@ void MainWindow::promptStartupConfigChoice() {
     updateMainWindowTitle();
     setGuiConfigDirty(false);
     setBaseStationsDirty(false);
-    onStatusMessage(tr("Started a new unsaved GUI config."));
+    onStatusMessage(tr("Started a new unsaved SimART config."));
 }
 
 void MainWindow::loadInitialData() {

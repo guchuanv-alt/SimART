@@ -273,11 +273,14 @@ Rectangle {
 
     Item {
         id: droneItem
-        property var overlay: airSimView.droneOverlay
-        visible: overlay.visible
+        property var overlay: airSimView.droneOverlay || ({})
+        property bool overlayVisible: overlay.visible === true
+        property real overlayX: overlay.x !== undefined ? overlay.x : 0
+        property real overlayY: overlay.y !== undefined ? overlay.y : 0
+        visible: overlayVisible
         z: 4
-        x: root.mapX(overlay.x) - 18
-        y: root.mapY(overlay.y) - 18
+        x: root.mapX(overlayX) - 18
+        y: root.mapY(overlayY) - 18
         width: 36
         height: 36
 
@@ -296,7 +299,7 @@ Rectangle {
             anchors.top: parent.bottom
             anchors.topMargin: 4
             anchors.horizontalCenter: parent.horizontalCenter
-            text: overlay.name ? overlay.name : "UAV"
+            text: droneItem.overlay.name ? droneItem.overlay.name : "UAV"
             color: "#dbeafe"
             font.pixelSize: 12
             font.bold: true
@@ -343,7 +346,7 @@ Rectangle {
                     font.pixelSize: 12
                 }
                 Text {
-                    text: "Host " + airSimView.host + ":" + airSimView.port + "   Camera " + airSimView.cameraName + (airSimView.vehicleName.length > 0 ? ("   Vehicle " + airSimView.vehicleName) : "")
+                    text: "Host " + airSimView.host + ":" + airSimView.port + "   Preview camera " + airSimView.cameraName + (airSimView.vehicleName.length > 0 ? ("   Vehicle " + airSimView.vehicleName) : "")
                     color: "#9fb3d9"
                     font.pixelSize: 12
                 }

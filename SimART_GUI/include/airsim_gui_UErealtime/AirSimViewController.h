@@ -162,7 +162,7 @@ private:
         double anchorX{0.0};
         double anchorY{0.0};
         double anchorZ{0.0};
-        double fps{100.0};
+        double fps{10.0};
         double yawDeg{0.0};
         double pitchDeg{-18.0};
         double rollDeg{0.0};
@@ -237,7 +237,7 @@ private:
     double pitchDeg_{-18.0};
     double rollDeg_{0.0};
     double distance_{45.0};
-    double framesPerSecond_{100.0};
+    double framesPerSecond_{10.0};
     double displayBrightness_{1.0};
     bool depthFetchEnabled_{false};
     bool connected_{false};
