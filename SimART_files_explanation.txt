@@ -1,0 +1,810 @@
+SimART 文件说明
+================
+
+生成说明
+--------
+本文件根据当前 SimART 目录下的源码、配置、文档和样例资源整理而成。
+我读取了文本源码/配置/文档/ROS 消息定义；对图片、gif、bag、blend、glb、fbx、zip、exr、webp、pyc 等二进制或大体积资源，按文件名、目录结构和关联配置说明用途。
+.git 目录属于 Git 内部数据，不作为项目功能文件展开说明。
+
+
+一、项目总体用途
+----------------
+SimART 是一个基于 ROS1 的无线通信与感知仿真平台。它把 C++/Qt/VTK 图形界面、Sionna RT/SYS 射线追踪和链路仿真、AirSim/Unreal Engine 实时可视化、rosbag 录制/回放/重仿真、CKM(Channel Knowledge Map) 生成等功能串在一起。
+
+核心流程大致是：
+1. 载入 3D 场景或样例地图。
+2. 配置基站、坐标变换、Sionna 场景 XML、ROS 输入 topic。
+3. 从 UAV 位姿 topic 或 rosbag 中获取轨迹。
+4. 用 Sionna 计算 RF 路径、SYS 链路指标、beam/codebook 结果。
+5. 在 GUI、UE live view、ROS topic、CSV/rosbag 中查看或保存结果。
+
+
+二、根目录文件
+--------------
+README.md
+  项目总说明。介绍 SimART 的目标、系统架构、地图构建流程、多模态数据、CKM、主要功能、预览图、安装依赖、快速开始、AirSim/UE 使用方式等。
+
+.gitignore
+  Git 忽略规则。忽略 Python 缓存、样例地图、样例 rosbag、下载的 zip、VS Code/Codex 配置等。
+
+download_sample_maps.sh
+  下载 SimART_sample_maps.zip 并解压到项目根目录的脚本。用于获取样例地图资产。
+
+download_sample_rosbags.sh
+  下载 BigCitySample_circular_flight.bag 到 SimART_sample_rosbags/ 的脚本。用于获取样例飞行 rosbag。
+
+test.txt
+  当前为空文件。没有项目逻辑内容。
+
+SimART_sample_maps.zip
+  已下载的样例地图压缩包。被 .gitignore 忽略，通常由 download_sample_maps.sh 获取。
+
+
+三、ROS 消息包
+--------------
+
+3.1 rf_msgs/
+~~~~~~~~~~~~
+rf_msgs 是 RF 射线追踪观测消息包，用于描述接收机、基站和传播路径。
+
+rf_msgs/package.xml
+  ROS catkin 包元数据。声明 message_generation、message_runtime、std_msgs、geometry_msgs 等依赖。
+
+rf_msgs/CMakeLists.txt
+  catkin 构建文件。注册 RfPathObservation.msg、RfAnchorObservation.msg、RfObservationArray.msg 并生成消息。
+
+rf_msgs/msg/RfPathObservation.msg
+  单条传播路径观测。包含路径类型、阶数、路径 ID、幅度/增益/功率、时延、Doppler、AoA、TX/RX 坐标以及路径折返点。
+
+rf_msgs/msg/RfAnchorObservation.msg
+  单个 anchor/base station 的 RF 观测。包含 anchor ID、名称、位置和多条路径。
+
+rf_msgs/msg/RfObservationArray.msg
+  一帧 RF 观测集合。包含 header、接收机位置/速度以及多个 anchor 的路径观测。
+
+
+3.2 sionna_sys_msgs/
+~~~~~~~~~~~~~~~~~~~~
+sionna_sys_msgs 是 Sionna SYS 链路层/系统级指标消息包。
+
+sionna_sys_msgs/package.xml
+  ROS 包元数据。声明 std_msgs、geometry_msgs、message_generation/message_runtime。
+
+sionna_sys_msgs/CMakeLists.txt
+  注册 SysConfig、SysServingLink、SysCandidateObservation、SysObservationArray 消息并生成。
+
+sionna_sys_msgs/msg/SysConfig.msg
+  SYS 仿真配置。包含是否启用、子载波数、子载波间隔、OFDM 符号数、温度、BLER 目标、MCS 表、发射功率、载频等。
+
+sionna_sys_msgs/msg/SysServingLink.msg
+  当前服务链路摘要。包含服务基站、速率、有效 SINR、MCS、解码 bit、ACK/NACK 状态、频谱效率等。
+
+sionna_sys_msgs/msg/SysCandidateObservation.msg
+  每个候选基站的 SYS 观测。包含路径数量、最强路径、候选速率、SINR、MCS、传输块状态、BLER 目标等。
+
+sionna_sys_msgs/msg/SysObservationArray.msg
+  一帧 SYS 观测集合。包含接收机状态、调度策略、候选列表、配置和服务链路。
+
+
+3.3 sionna_beam_msgs/
+~~~~~~~~~~~~~~~~~~~~~
+sionna_beam_msgs 是 beamforming、码本和波束选择结果消息包。
+
+sionna_beam_msgs/package.xml
+  ROS 包元数据。描述为 Sionna beam codebook 和 per-BS beam observation 的消息定义。
+
+sionna_beam_msgs/CMakeLists.txt
+  注册 BeamEntry、BeamCodebook、BeamObservation、BeamObservationArray 消息并生成。
+
+sionna_beam_msgs/msg/BeamEntry.msg
+  一个 beam 的条目。包含 beam index、二维 beam 网格索引、复数权重的实部/虚部数组。
+
+sionna_beam_msgs/msg/BeamCodebook.msg
+  beam codebook 定义。包含 codebook ID/type、阵列尺寸、过采样、归一化设置、beam 数量和 beam 列表。
+
+sionna_beam_msgs/msg/BeamObservation.msg
+  单个基站的一帧 beam 观测。包含选择模式、codebook、手动/预测/oracle beam、增益、top-k、特征向量、是否命中等。
+
+sionna_beam_msgs/msg/BeamObservationArray.msg
+  多个基站 beam 观测的集合。包含仿真序号、odom 时间戳、frame_id、codebook_id 和 observations。
+
+
+四、SimART_GUI ROS/Qt GUI 包
+---------------------------
+SimART_GUI 实际 ROS 包名为 airsim_gui_UErealtime，是主图形界面和运行时工具所在目录。
+
+SimART_GUI/package.xml
+  GUI 包元数据。声明 Qt、VTK、assimp、roscpp、tf/tf2、geometry/nav/std/sensor msgs、rf_msgs、sionna_sys_msgs、sionna_beam_msgs 等依赖。
+
+SimART_GUI/CMakeLists.txt
+  GUI 包构建文件。启用 Qt AUTOMOC/AUTORCC/AUTOUIC，查找 Qt5、VTK、assimp、catkin；构建主 GUI 可执行文件；可选启用 AirSim C++ RPC live view。
+
+SimART_GUI/resources.qrc
+  Qt 资源文件。当前把 qml/UeLiveView.qml 打包进资源系统。
+
+
+4.1 launch/
+~~~~~~~~~~~
+SimART_GUI/launch/sionna_sim_only_topic.launch
+  启动 Sionna 在线仿真节点 sionna_sim_only_topic2.py。配置样例地图路径、Sionna XML、基站 JSON、ROS-to-map 变换、odom topic、仿真频率、RF/SYS 输出 topic、载频、Mitsuba variant、ray tracing 深度、预览渲染参数等。
+
+SimART_GUI/launch/gui_transform_path.launch
+  启动坐标变换链路。用 transform_coords.py 把 AirSim/ROS odom 转到 3D map frame，再用 path_to_rviz_odom.py 生成 /uav_path 供 RViz/GUI 展示轨迹。
+
+
+4.2 config/
+~~~~~~~~~~~
+SimART_GUI/config/base_stations.json
+  默认基站配置。包含 3 个基站的位置、颜色、名称、预览摄像机名、预览 ROS topic、FPS 等。
+
+SimART_GUI/config/world_scene.json
+  默认简化世界配置。定义地面尺寸和若干矩形建筑 block，供没有载入真实 mesh 时演示使用。
+
+SimART_GUI/config/settings_external_preview_example.json
+  AirSim settings.json 示例。配置 PX4 多旋翼、车载/外部摄像机、GUI 预览摄像机和基站摄像机。
+
+SimART_GUI/config/gltf_import_transform.json
+  glTF 导入时使用的 4x4 变换矩阵。当前是单位矩阵。
+
+
+4.3 qml/
+~~~~~~~~
+SimART_GUI/qml/UeLiveView.qml
+  Unreal/AirSim live view 的 Qt Quick 前端。显示实时图像，绘制射线路径、基站 overlay、UAV overlay、悬浮/固定信息卡，支持鼠标旋转/缩放/点击选择。
+
+SimART_GUI/qml/UeStationCameraView.qml
+  单个基站摄像机窗口的 Qt Quick 前端。显示该基站的实时画面、RF path overlay、UAV overlay 和状态文字，支持交互控制视角。
+
+
+4.4 include/airsim_gui_UErealtime/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_GUI/include/airsim_gui_UErealtime/AppTypes.h
+  GUI 通用数据结构。定义 Vec3、BaseStation、SceneBlock、BeamPath、RF path/anchor/snapshot、DroneState、WorldConfig，以及基站摄像机 topic/name 相关辅助函数。
+
+SimART_GUI/include/airsim_gui_UErealtime/MainWindow.h
+  主窗口类声明。管理菜单、工具栏、左右 dock、ROS 连接、仿真设置、坐标设置、基站编辑、AirSim live view、Sionna preview、CKM、rosbag 工具、数据窗口等。
+
+SimART_GUI/include/airsim_gui_UErealtime/Scene3DWidget.h
+  VTK 3D 场景控件声明。负责地面、建筑、导入 mesh、基站、UAV、轨迹、射线路径、坐标轴、鼠标拾取和基站编辑。
+
+SimART_GUI/include/airsim_gui_UErealtime/RosBridge.h
+  ROS 与 Qt GUI 的桥。订阅 pose/odom/path/RF/SYS/beam topics，把 ROS 消息转换成 GUI 数据结构和 JSON 文本信号。
+
+SimART_GUI/include/airsim_gui_UErealtime/DemoController.h
+  内置演示控制器。用 timer 生成 UAV 和射线路径的模拟状态，供无外部 ROS 仿真时演示。
+
+SimART_GUI/include/airsim_gui_UErealtime/JsonConfig.h
+  JSON 配置读写工具。负责读取/保存基站配置、读取世界配置。
+
+SimART_GUI/include/airsim_gui_UErealtime/TransformUtils.h
+  4x4 坐标变换工具。支持矩阵取逆、点/向量变换、从 JSON 加载/保存矩阵、格式化显示。
+
+SimART_GUI/include/airsim_gui_UErealtime/FrameTransformManager.h
+  坐标系管理器。维护 ROS frame、scene frame、AirSim frame、UAV 通信 frame、接收阵列 frame 等之间的 tf2/矩阵变换。
+
+SimART_GUI/include/airsim_gui_UErealtime/SceneTypes.h
+  场景几何类型。定义材质、mesh 几何、场景 bundle、场景来源类型和加载请求。
+
+SimART_GUI/include/airsim_gui_UErealtime/ISceneProvider.h
+  场景加载 provider 的抽象接口。
+
+SimART_GUI/include/airsim_gui_UErealtime/FileSceneProvider.h
+  从本地 mesh 文件加载场景的 provider。
+
+SimART_GUI/include/airsim_gui_UErealtime/AirSimSceneProvider.h
+  从 AirSim 获取 mesh 的 provider；可把获取的 geometry 写成 OBJ cache。
+
+SimART_GUI/include/airsim_gui_UErealtime/OsmSceneProvider.h
+  OSM 场景 provider。支持从本地 OSM 文件或 bounding box 生成/加载场景。
+
+SimART_GUI/include/airsim_gui_UErealtime/SceneManager.h
+  场景加载调度器。统一调用 file/AirSim/OSM provider。
+
+SimART_GUI/include/airsim_gui_UErealtime/OsmMapWidget.h
+  OSM 瓦片地图控件。支持地图居中、缩放、选择框、tile 下载/cache、bbox 预览。
+
+SimART_GUI/include/airsim_gui_UErealtime/OsmImportDialog.h
+  OSM 导入对话框。支持地名搜索、bbox 选择、OSM2World/Java 路径配置、导入参数确认。
+
+SimART_GUI/include/airsim_gui_UErealtime/AirSimViewController.h
+  AirSim/UE live view 控制器。管理图像帧获取、相机控制、外部位姿控制、overlay 投影、ROS 图像发布/订阅、基站摄像机等。
+
+SimART_GUI/include/airsim_gui_UErealtime/UeViewWidget.h
+  Qt Widget 包装 QML live view，把 AirSimViewController 暴露给 QML。
+
+SimART_GUI/include/airsim_gui_UErealtime/SionnaPreviewWidget.h
+  嵌入式 Sionna RT GUI 预览控件。启动 Python launcher，并尝试把外部窗口嵌入 Qt。
+
+SimART_GUI/include/airsim_gui_UErealtime/CkmMapWidget.h
+  CKM 地图控件。加载 CKM metadata/图片/pick map，支持指标切换、缩放、点击选择网格点并显示指标详情。
+
+
+4.5 src/
+~~~~~~~~
+SimART_GUI/src/main.cpp
+  GUI 程序入口。初始化 QApplication/ROS 相关环境并打开 MainWindow。
+
+SimART_GUI/src/MainWindow.cpp
+  主窗口实现，是整个 GUI 的中枢。包含 UI 搭建、配置保存/加载、基站编辑、ROS 连接、Sionna 内部仿真进程、AirSim live view、station camera、RF/SYS/beam 数据展示、rosbag 录制/回放/重仿真、Dense CKM 生成、诊断日志等大量逻辑。
+
+SimART_GUI/src/Scene3DWidget.cpp
+  VTK 3D 场景实现。构建地面、建筑、导入 mesh actor、基站 actor、UAV actor、历史轨迹、射线路径，处理拾取、悬浮卡片、视角重置和显示开关。
+
+SimART_GUI/src/RosBridge.cpp
+  ROS topic 桥实现。列出 topic、判断类型、订阅 pose/odom/path/RF/SYS/beam，进行坐标变换，生成 DroneState、BeamPathList、RfObservationSnapshot、SYS/beam JSON。
+
+SimART_GUI/src/JsonConfig.cpp
+  JSON 配置实现。读取 base_stations/world_scene，保存 base_stations。
+
+SimART_GUI/src/DemoController.cpp
+  内置 demo 的实现。按 timer 更新 UAV 位置和路径。
+
+SimART_GUI/src/TransformUtils.cpp
+  4x4 矩阵工具实现。用于坐标变换 JSON 的读写和点/向量变换。
+
+SimART_GUI/src/FrameTransformManager.cpp
+  frame/tf 管理实现。构建 ROS/scene/AirSim/UAV/RX array 的变换树，支持点、向量、四元数在不同输出 frame 间转换。
+
+SimART_GUI/src/SceneManager.cpp
+  provider 调度实现。根据请求从文件、AirSim 或 OSM 加载场景。
+
+SimART_GUI/src/FileSceneProvider.cpp
+  本地 mesh 导入实现。使用 assimp 解析 GLB/FBX/OBJ 等模型，输出 GUI 可用的 SceneGeometryBundle。
+
+SimART_GUI/src/AirSimSceneProvider.cpp
+  AirSim mesh provider 实现。启用 AirSim 支持时从 AirSim API 获取 mesh；否则给出不可用错误。
+
+SimART_GUI/src/OsmSceneProvider.cpp
+  OSM 场景加载/转换实现。处理本地 OSM、bbox 下载、OSM2World 输出、mesh 导入和缓存。
+
+SimART_GUI/src/OsmMapWidget.cpp
+  OSM tile 地图控件实现。包含 Web Mercator 变换、tile 请求/缓存、绘制、鼠标拖拽/框选/滚轮缩放。
+
+SimART_GUI/src/OsmImportDialog.cpp
+  OSM 导入对话框实现。包含 Nominatim 搜索、结果选择、bbox 更新、OSM2World/Java 路径选择等。
+
+SimART_GUI/src/AirSimViewController.cpp
+  AirSim live view 实现。管理 worker 线程取图、相机姿态、深度拾取、世界点投影、overlay 数据、ROS 图像发布、订阅外部 ROS 图像、外部 pose 控制。
+
+SimART_GUI/src/UeViewWidget.cpp
+  QML live view 容器实现。加载 UeLiveView.qml 并注入 airSimView 控制器对象。
+
+SimART_GUI/src/SionnaPreviewWidget.cpp
+  Sionna RT GUI 预览实现。启动 sionna_embed_launcher.py，读取 stdout/stderr，暂停/恢复/停止进程，查找并嵌入外部窗口。
+
+SimART_GUI/src/CkmMapWidget.cpp
+  CKM 地图显示实现。读取 meta.json，管理 metric/view mode，加载 heatmap/scene overlay/pick map，处理坐标映射和点选详情。
+
+
+4.6 scripts/
+~~~~~~~~~~~~
+SimART_GUI/scripts/sionna_sim_only_topic2.py
+  在线 Sionna 仿真主脚本。订阅 odom，加载 Sionna scene XML、基站 JSON、坐标变换，运行 RT/SYS/beam 计算，发布 rf_msgs、sionna_sys_msgs、sionna_beam_msgs，可输出 CSV 和预览帧。内部包含 OfflineSionnaSimulator。
+
+SimART_GUI/scripts/sionna_internal_socket_bridge.py
+  GUI 内部使用的 socket bridge。主进程负责 ROS 参数、odom 缓冲、消息发布和 CSV 记录；子 worker 负责重计算/仿真，通过 socket 交换 packet。
+
+SimART_GUI/scripts/sionna_resim_socket_worker.py
+  rosbag 重仿真的 worker。由 bridge/reprocess 脚本启动，接收位姿样本，返回 RF/SYS/beam 结果。
+
+SimART_GUI/scripts/reprocess_rosbag_with_sionna.py
+  离线 rosbag 重处理工具。读取输入 bag 的 UAV pose/odom，调用 Sionna worker 生成 RF/SYS 消息，再把生成消息合并写入输出 bag。
+
+SimART_GUI/scripts/sionna_beam_topic_utils.py
+  beam topic 工具函数。处理 codebook 规格、DFT 过采样、codebook payload、beam snapshot、ROS BeamCodebook/BeamObservationArray 消息构造。
+
+SimART_GUI/scripts/deepsense_beam_selector.py
+  DeepSense beam 预测器封装。加载 checkpoint，构造特征，输出预测 beam、置信度、top-k 等。
+
+SimART_GUI/scripts/train_deepsense_beam_model.py
+  训练 DeepSense beam 选择模型的脚本。读取 CSV/dataset，划分训练验证集，训练 PyTorch MLP，评估 top-k，并保存 checkpoint。
+
+SimART_GUI/scripts/export_sionna_codebook.py
+  导出 Sionna beam codebook 的命令行工具。根据阵列和 codebook 参数生成 payload 文件。
+
+SimART_GUI/scripts/sionna_ckm_generator.py
+  Dense CKM 生成器。按网格扫描场景，计算 path loss、received power、SINR、rate、beam 等指标，保存 heatmap、scene overlay、pick map、metadata。
+
+SimART_GUI/scripts/scene_bounds_from_xml.py
+  从 Mitsuba/Sionna XML 场景提取 bounding box 的工具。
+
+SimART_GUI/scripts/sionna_tf_frame_utils.py
+  Python 版坐标 frame 工具。管理 ROS/scene/AirSim/UAV/RX array 变换，转换 anchor payload 和测量 rows。
+
+SimART_GUI/scripts/transform_coords.py
+  ROS odometry 坐标变换节点。用 JSON 4x4 矩阵把输入 odom 转到输出 topic，可选变换角速度。
+
+SimART_GUI/scripts/path_to_rviz_odom.py
+  odom 到 nav_msgs/Path 的转换节点。累计轨迹点并发布 /uav_path。
+
+SimART_GUI/scripts/airsim_image_bridge.py
+  AirSim 图像桥/辅助进程。负责相机 orbit 状态和图像帧通信，供 GUI live view 使用。
+
+SimART_GUI/scripts/mock_publishers.py
+  测试用 mock ROS publisher。发布假数据用于 GUI/ROS 链路调试。
+
+SimART_GUI/scripts/sionna_embed_launcher.py
+  嵌入 Sionna RT GUI 的启动器。把 vendored sionna_rt_gui 加入 Python path 并启动 GUI。
+
+SimART_GUI/scripts/__pycache__/*.pyc
+  Python 字节码缓存。由 Python 运行脚本时自动生成，不是源码。
+
+
+4.7 third_party/sionna_rt_gui/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+这是随 GUI vendored 的 Sionna RT/Polyscope 可视化工具。
+
+SimART_GUI/third_party/sionna_rt_gui/LICENSE
+  NVIDIA Apache-2.0 许可证文本。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/__init__.py
+  Python 包初始化文件。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/gui.py
+  SionnaRtGui 主类。负责 Sionna 场景、Polyscope/ImGui 界面、设备和渲染交互。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/config.py
+  GUI 配置 dataclass/enums。定义天线阵列、radio map、paths、rendering、GUI mode 等配置并支持 YAML 加载。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/rendering.py
+  Sionna/Mitsuba 渲染工具。设置 scene 渲染、执行 render、envmap 旋转、ray-traced image quantity 更新。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/sionna_utils.py
+  Sionna 与 Polyscope 的桥。把 scene objects、radio devices、radio map、paths 加到 Polyscope 中。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/rm_utils.py
+  Radio map 可视化工具。做归一化、colormap、colorbar、texture 生成。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/selection.py
+  选择/拾取 GUI。显示选中对象、路径、设备等信息。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/animation.py
+  动画和轨迹工具。定义 Trajectory、AnimationConfig、looping mode，以及动画 GUI/tick。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/antenna_array.py
+  天线阵列 GUI。编辑/展示阵列参数。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/ps_utils.py
+  Polyscope/Dr.Jit 图像互操作工具。处理 GPU/CPU array 指针、复制、ImGui 风格等。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/drjit_util.py
+  Dr.Jit 清理辅助函数。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/dlpack_utils.py
+  DLPack pointer 工具，用于 tensor/Dr.Jit array 互操作。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/reload.py
+  开发期热重载工具。监控文件/模块变化并递归 reload。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/data/envmaps/README.md
+  环境贴图资源说明。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/data/envmaps/teufelsberg_ground_2_1k.exr
+  Sionna RT GUI 使用的 HDR 环境贴图。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/data/preview.webp
+  Sionna RT GUI 预览图资源。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/data/configs/sionna_rt_gui/base.yaml
+  Sionna RT GUI 基础配置文件。当前为空/占位。
+
+SimART_GUI/third_party/sionna_rt_gui/src/sionna_rt_gui/data/configs/sionna_rt_gui/example.yaml
+  示例 GUI 配置。设置背景色、GUI mode、TX array vertical spacing、渲染 spp、radio map cell size 和 colormap。
+
+
+五、教程与图片
+--------------
+Tutorials/Usage/Usage.md
+  英文使用教程。说明如何加载可视化场景、配置 Sionna、配置坐标系、添加基站、选择 ROS topic、启动仿真、使用 UE live view、rosbag 工具、保存配置、查看 RF/SYS/beam 数据。
+
+Tutorials/Usage/Usage.zh-CN.md
+  中文使用教程。内容与 Usage.md 对应。
+
+Tutorials/CreateMap/CreateMap.md
+  英文地图创建教程。说明 OSM 到 Sionna RT/Unreal/AirSim 的流程，以及 RoadRunner/FBX 自定义地图到 Sionna RT 的流程。
+
+Tutorials/CreateMap/CreateMap.zh-CN.md
+  中文地图创建教程。内容与 CreateMap.md 对应。
+
+Tutorials/CreateMap/blender_scripts/replace_selected_material.py
+  Blender 脚本。把选中对象的材质替换为指定材质，默认用于设置 Sionna RT 材质名如 itu_concrete。
+
+Tutorials/CreateMap/blender_scripts/mesh_statistics_report.py
+  Blender 脚本。统计场景/mesh 的顶点、边、面、三角形、非流形等信息，生成报告文本。
+
+Tutorials/CreateMap/blender_scripts/simplify_map_to_boxes.py
+  Blender 脚本。把选中的地图对象简化为 box proxy，便于生成更轻量的 Sionna RT 场景。
+
+Tutorials/CreateMap/blender_scripts/clean_invalid_normals.py
+  Blender 脚本。清理无效法线、退化网格和重复点，改善导出质量。
+
+Tutorials/images/simart_wordmark.svg
+  SimART 项目文字 logo。
+
+Tutorials/images/system_architecture.png
+  README 中的系统架构图。
+
+Tutorials/images/louvre_map_pipeline.png
+  Louvre/OSM 真实地图构建流程图。
+
+Tutorials/images/roadrunner_map_pipeline.png
+  RoadRunner/自定义地图构建流程图。
+
+Tutorials/images/multimodal_uav_sensor_streams.png
+  UAV 多模态传感器流示意图。
+
+Tutorials/images/multimodal_ckm_layers.png
+  多层 CKM 结果示意图。
+
+Tutorials/images/multimodal_base_station_view.png
+  多模态/基站视角相关示意图。
+
+Tutorials/images/SionnaSYSData.png
+  Sionna SYS 数据窗口截图。
+
+Tutorials/images/RecordingData.png
+  rosbag/数据录制相关截图。
+
+Tutorials/images/WirelessData.png
+  RF/wireless data 数据窗口截图。
+
+Tutorials/images/SwitchPythonEnv.png
+  切换 Python/Sionna 环境的教程截图。
+
+Tutorials/images/OpenRosbag.png
+  打开/回放 rosbag 的教程截图。
+
+Tutorials/images/StartSim.png
+  启动仿真的教程截图。
+
+Tutorials/images/planform.gif
+  主 GUI 平面/整体操作预览动图。
+
+Tutorials/images/drone_view.gif
+  UAV 视角/射线可视化动图。
+
+Tutorials/images/base_station.gif
+  基站布局/基站预览动图。
+
+
+六、third_party/airsim_ros_pkgs_sa/
+-----------------------------------
+这是 AirSim ROS wrapper 的第三方/改造版本。third_party/CATKIN_IGNORE 让 catkin 默认忽略整个 third_party 目录，避免默认参与构建；需要时可单独启用或移出。
+
+third_party/CATKIN_IGNORE
+  空文件。告诉 catkin 忽略 third_party 目录。
+
+third_party/airsim_ros_pkgs_sa/README.md
+  简短说明，指向 AirSim ROS package。
+
+third_party/airsim_ros_pkgs_sa/package.xml
+  ROS 包元数据。描述为 AirSim C++ client library 的 ROS wrapper，声明 image_transport、mavros_msgs、nav_msgs、sensor_msgs、geometry_msgs、tf2 等依赖。
+
+third_party/airsim_ros_pkgs_sa/CMakeLists.txt
+  AirSim ROS wrapper 构建文件。引入 AirLib、rpclib、MavLinkCom，生成自定义消息/服务，构建 airsim_node_ex 和 pd_position_controller_simple_node_ex。
+
+third_party/airsim_ros_pkgs_sa/include/airsim_ros_wrapper.h
+  AirsimROSWrapper 类声明。管理 AirSim client、ROS publisher/subscriber/service、图像/IMU/LiDAR/GPS/odom/tf 发布和控制命令。
+
+third_party/airsim_ros_pkgs_sa/src/airsim_ros_wrapper.cpp
+  AirSim ROS wrapper 主实现。连接 AirSim，创建 ROS topic/service，发布车辆状态、图像、LiDAR、IMU、GPS、TF，处理 takeoff/land/reset/velocity/gimbal/car 控制。
+
+third_party/airsim_ros_pkgs_sa/src/airsim_node.cpp
+  AirSim ROS node 入口，启动 AirsimROSWrapper。
+
+third_party/airsim_ros_pkgs_sa/include/airsim_settings_parser.h
+  AirSim settings parser 类声明。
+
+third_party/airsim_ros_pkgs_sa/src/airsim_settings_parser.cpp
+  从 AirSim 获取/解析 settings 文本和 SimMode。
+
+third_party/airsim_ros_pkgs_sa/include/pd_position_controller_simple.h
+  简单 PD/PID 位置控制器声明。定义 XYZYaw、DynamicConstraints、PIDPositionController。
+
+third_party/airsim_ros_pkgs_sa/src/pd_position_controller_simple.cpp
+  简单位置控制器实现。订阅 odom/GPS，处理 local/GPS position service，计算速度控制指令并施加动态约束。
+
+third_party/airsim_ros_pkgs_sa/src/pd_position_controller_simple_node.cpp
+  位置控制器 node 入口。
+
+third_party/airsim_ros_pkgs_sa/include/math_common.h
+  小型数学辅助头文件。
+
+third_party/airsim_ros_pkgs_sa/include/utils.h
+  通用辅助头文件。
+
+third_party/airsim_ros_pkgs_sa/scripts/car_joy.py
+  joystick 到 CarControls 的转换脚本，用于手柄控制 AirSim car。
+
+third_party/airsim_ros_pkgs_sa/rviz/default.rviz
+  RViz 默认配置文件，用于查看 AirSim ROS wrapper 发布的 odom、TF、传感器等。
+
+third_party/airsim_ros_pkgs_sa/launch/airsim_node.launch
+  启动 airsim_node_ex，设置图像/控制/LiDAR/IMU 更新频率、host_ip、sim time、LiDAR 发布开关，并包含静态坐标变换。
+
+third_party/airsim_ros_pkgs_sa/launch/static_transforms.launch
+  发布 world_ned 到 world_enu 的静态 TF。
+
+third_party/airsim_ros_pkgs_sa/launch/dynamic_constraints.launch
+  设置车辆速度和 gimbal 角度限制参数。
+
+third_party/airsim_ros_pkgs_sa/launch/position_controller_simple.launch
+  启动简单 PD 位置控制器并配置 PID 参数/到达阈值。
+
+third_party/airsim_ros_pkgs_sa/launch/airsim_all.launch
+  组合启动 AirSim wrapper、动态约束和 PD 位置控制器。
+
+third_party/airsim_ros_pkgs_sa/launch/airsim_with_simple_PD_position_controller.launch
+  与 airsim_all.launch 类似，启动 AirSim wrapper 和简单 PD 控制器。
+
+third_party/airsim_ros_pkgs_sa/launch/airsim_car_with_joy_control.launch
+  启动 AirSim car wrapper、joy_node 和 car_joy，用手柄控制车辆。
+
+third_party/airsim_ros_pkgs_sa/launch/airsim_car_with_joy_control_auto.launch
+  car joystick 自动/变体启动文件，配置 ENU world frame 和手动挡参数。
+
+third_party/airsim_ros_pkgs_sa/launch/rviz.launch
+  用 default.rviz 启动 RViz。
+
+third_party/airsim_ros_pkgs_sa/msg/Altimeter.msg
+  高度计消息。包含 altitude、pressure、qnh。
+
+third_party/airsim_ros_pkgs_sa/msg/CarControls.msg
+  车辆控制消息。包含 throttle、brake、steering、handbrake、manual gear 等。
+
+third_party/airsim_ros_pkgs_sa/msg/CarState.msg
+  车辆状态消息。包含 pose、twist、speed、gear、rpm、handbrake。
+
+third_party/airsim_ros_pkgs_sa/msg/Environment.msg
+  环境状态消息。包含位置、地理点、重力、气压、温度、空气密度。
+
+third_party/airsim_ros_pkgs_sa/msg/GimbalAngleEulerCmd.msg
+  用欧拉角控制 gimbal 的消息。
+
+third_party/airsim_ros_pkgs_sa/msg/GimbalAngleQuatCmd.msg
+  用四元数控制 gimbal 的消息。
+
+third_party/airsim_ros_pkgs_sa/msg/GPSYaw.msg
+  GPS + yaw 消息。包含 latitude、longitude、altitude、yaw。
+
+third_party/airsim_ros_pkgs_sa/msg/VelCmd.msg
+  单车速度控制消息，包含 geometry_msgs/Twist。
+
+third_party/airsim_ros_pkgs_sa/msg/VelCmdGroup.msg
+  多车速度控制消息，包含 Twist 和 vehicle_names。
+
+third_party/airsim_ros_pkgs_sa/srv/Takeoff.srv
+  单机起飞服务。
+
+third_party/airsim_ros_pkgs_sa/srv/TakeoffGroup.srv
+  多机起飞服务。
+
+third_party/airsim_ros_pkgs_sa/srv/Land.srv
+  单机降落服务。
+
+third_party/airsim_ros_pkgs_sa/srv/LandGroup.srv
+  多机降落服务。
+
+third_party/airsim_ros_pkgs_sa/srv/Reset.srv
+  AirSim reset 服务。
+
+third_party/airsim_ros_pkgs_sa/srv/SetLocalPosition.srv
+  设置局部坐标目标点和 yaw 的服务。
+
+third_party/airsim_ros_pkgs_sa/srv/SetGPSPosition.srv
+  设置 GPS 目标点和 yaw 的服务。
+
+
+七、样例地图与样例 rosbag
+------------------------
+这些目录通常由下载脚本获得，并在 .gitignore 中忽略。它们是运行教程、快速演示和 Sionna/UE/AirSim 对齐时使用的资产。
+
+7.1 SimART_sample_rosbags/
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_sample_rosbags/BigCitySample_circular_flight.bag
+  BigCitySample 场景的圆形飞行样例 rosbag。用于回放 UAV 轨迹、测试 rosbag playback、无线重仿真和 GUI 数据展示。
+
+
+7.2 SimART_sample_maps/Paris/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_sample_maps/Paris/Paris.osm
+  Paris/Louvre 区域的 OpenStreetMap 原始地图数据。
+
+SimART_sample_maps/Paris/Paris_z_up.glb
+  用于 UE/AirSim 或 GUI 可视化的 z-up GLB 场景模型。
+
+SimART_sample_maps/Paris/Paris.blend
+  Blender 完整场景工程文件。
+
+SimART_sample_maps/Paris/Paris_osm.blend
+  OSM 导入/处理中间 Blender 工程文件。
+
+SimART_sample_maps/Paris/Paris_sionna/Paris.xml
+  Mitsuba/Sionna RT 场景 XML。定义材质、发射器、shape，并引用 meshes/ 下的 PLY 网格。
+
+SimART_sample_maps/Paris/Paris_sionna/meshes/*.ply
+  Paris Sionna RT 场景的网格片段。文件名通常带物体名和材质名，如 itu_concrete、itu_marble、itu_glass、itu_very_dry_ground；被 Paris.xml 引用用于射线追踪。
+
+SimART_sample_maps/Paris/config/ROS_to_3D_matrix.json
+  Paris 场景 ROS frame 到 3D scene frame 的 4x4 变换矩阵。
+
+SimART_sample_maps/Paris/config/airsim_to_3D_matrix.json
+  Paris 场景 AirSim frame 到 3D scene frame 的 4x4 变换矩阵。
+
+SimART_sample_maps/Paris/config/bs_list.json
+  Paris 场景基站列表。包含基站位置、颜色、预览摄像机和 topic。
+
+SimART_sample_maps/Paris/Paris.agcfg
+  Paris 场景的 GUI 配置文件，保存基站、坐标/仿真/UI 等运行参数。
+
+
+7.3 SimART_sample_maps/Paris_Small/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_sample_maps/Paris_Small/Paris_Small.osm
+  Paris 小区域 OSM 原始数据。
+
+SimART_sample_maps/Paris_Small/Paris_Small_z_up.glb
+  Paris 小区域 z-up GLB 可视化模型。
+
+SimART_sample_maps/Paris_Small/Paris_Small.blend
+  Paris 小区域 Blender 完整场景。
+
+SimART_sample_maps/Paris_Small/Paris_osm.blend
+  Paris 小区域 OSM 导入/处理中间 Blender 文件。
+
+SimART_sample_maps/Paris_Small/Paris_Small_sionna/Paris_Small.xml
+  Paris 小区域 Sionna RT/Mitsuba XML 场景。
+
+SimART_sample_maps/Paris_Small/Paris_Small_sionna/meshes/*.ply
+  Paris 小区域 Sionna RT 场景的 PLY 网格片段，由 XML 引用。
+
+SimART_sample_maps/Paris_Small/config/ROS_to_3D_matrix.json
+  Paris 小区域 ROS 到 3D 的坐标变换矩阵。
+
+SimART_sample_maps/Paris_Small/config/airsim_to_3D_matrix.json
+  Paris 小区域 AirSim 到 3D 的坐标变换矩阵。
+
+SimART_sample_maps/Paris_Small/config/bs_list.json
+  Paris 小区域基站配置。
+
+SimART_sample_maps/Paris_Small/Paris_Small.agcfg
+  Paris 小区域 GUI 配置。
+
+
+7.4 SimART_sample_maps/Tokyo/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_sample_maps/Tokyo/Tokyo_Ginza.osm
+  Tokyo Ginza 区域 OSM 原始数据。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza_z_up.glb
+  Tokyo Ginza z-up GLB 可视化模型。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza.blend
+  Tokyo Ginza Blender 完整场景。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza_osm.blend
+  Tokyo Ginza OSM 导入/处理中间 Blender 文件。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza_sionna/Tokyo_Ginza.xml
+  Tokyo Ginza Sionna RT/Mitsuba XML 场景。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza_sionna/meshes/*.ply
+  Tokyo Ginza Sionna RT 场景 PLY 网格片段。
+
+SimART_sample_maps/Tokyo/config/ROS_to_3D_matrix.json
+  Tokyo 场景 ROS 到 3D 的坐标变换矩阵。
+
+SimART_sample_maps/Tokyo/config/airsim_to_3D_matrix.json
+  Tokyo 场景 AirSim 到 3D 的坐标变换矩阵。
+
+SimART_sample_maps/Tokyo/config/bs_list.json
+  Tokyo 场景基站配置。
+
+SimART_sample_maps/Tokyo/Tokyo_Ginza.agcfg
+  Tokyo 场景 GUI 配置。
+
+
+7.5 SimART_sample_maps/BigCitySample/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SimART_sample_maps/BigCitySample/BigCitySample.blend
+  BigCitySample Blender 完整场景。
+
+SimART_sample_maps/BigCitySample/BigCitySample.blend1
+  Blender 自动备份文件。
+
+SimART_sample_maps/BigCitySample/BigCitySample_color.fbx
+  BigCitySample 彩色 FBX 场景资产，可用于 UE/Blender/可视化导入。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest.blend
+  BigCitySample 简化/测试版本 Blender 场景。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_wet.blend
+  BigCitySample wet-ground 简化/测试版本 Blender 场景。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_wet.blend1
+  Blender 自动备份文件。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_sionna/BigCitySample_simptest.xml
+  BigCitySample 简化 Sionna RT/Mitsuba XML 场景，使用 very dry/medium dry ground、concrete、brick、glass 等材质。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_sionna/BigCitySample_simptest.xml.bak
+  BigCitySample 简化 Sionna XML 的备份文件。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_sionna/meshes/*.ply
+  BigCitySample 简化 Sionna 场景的 PLY 网格片段，包括 road、terrain、fountain、building box proxy 等。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_wet_sionna/BigCitySample_simptest_wet.xml
+  BigCitySample wet-ground 版本 Sionna RT/Mitsuba XML 场景，使用 wet_ground 等材质。
+
+SimART_sample_maps/BigCitySample/BigCitySample_simptest_wet_sionna/meshes/*.ply
+  BigCitySample wet-ground 版本 Sionna 场景的 PLY 网格片段。
+
+SimART_sample_maps/BigCitySample/config/ROS_to_3D_matrix.json
+  BigCitySample ROS frame 到 3D scene frame 的 4x4 变换矩阵。
+
+SimART_sample_maps/BigCitySample/config/airsim_to_3D_matrix.json
+  BigCitySample AirSim frame 到 3D scene frame 的 4x4 变换矩阵。
+
+SimART_sample_maps/BigCitySample/config/3D_to_ROS_matrix.json
+  BigCitySample 3D scene frame 到 ROS frame 的 4x4 变换矩阵。
+
+SimART_sample_maps/BigCitySample/config/bs_list_simplified.json
+  BigCitySample 简化基站配置。
+
+SimART_sample_maps/BigCitySample/config/bs_list_simplified2.json
+  BigCitySample 另一组简化基站配置。
+
+SimART_sample_maps/BigCitySample/BigCitySample.agcfg
+  BigCitySample GUI 配置。
+
+SimART_sample_maps/BigCitySample/BigCitySample_wet.agcfg
+  BigCitySample wet-ground 版本 GUI 配置。
+
+
+八、文件之间的关键关系
+----------------------
+1. GUI 主程序从 SimART_GUI/src/main.cpp 进入，主要逻辑在 MainWindow.cpp。
+2. MainWindow 通过 RosBridge 订阅/发布 ROS 数据，通过 Scene3DWidget 展示 3D 场景，通过 AirSimViewController 展示 UE/AirSim live view。
+3. Sionna 仿真主要由 sionna_sim_only_topic2.py、sionna_internal_socket_bridge.py 和 sionna_resim_socket_worker.py 完成。
+4. RF/SYS/beam 结果通过 rf_msgs、sionna_sys_msgs、sionna_beam_msgs 三组 ROS 消息发布。
+5. 样例地图中的 *.xml + meshes/*.ply 是 Sionna RT 使用的传播场景；*.glb/*.fbx/*.blend 更多用于可视化、地图编辑或 UE/AirSim 导入。
+6. config/ROS_to_3D_matrix.json、airsim_to_3D_matrix.json 等矩阵文件把 ROS、3D scene、AirSim 坐标系统一起来。
+7. Tutorials 目录说明如何创建地图和使用 GUI；images 目录提供 README/教程中的截图和动图。
+
+
+九、适合从哪里开始读代码
+------------------------
+如果要理解整体：
+1. README.md
+2. SimART_GUI/include/airsim_gui_UErealtime/MainWindow.h
+3. SimART_GUI/src/main.cpp
+4. SimART_GUI/src/MainWindow.cpp
+5. SimART_GUI/src/RosBridge.cpp
+6. SimART_GUI/scripts/sionna_sim_only_topic2.py
+
+如果要理解 ROS 数据：
+1. rf_msgs/msg/*.msg
+2. sionna_sys_msgs/msg/*.msg
+3. sionna_beam_msgs/msg/*.msg
+4. SimART_GUI/src/RosBridge.cpp
+5. SimART_GUI/scripts/sionna_beam_topic_utils.py
+
+如果要理解坐标变换：
+1. SimART_GUI/include/airsim_gui_UErealtime/FrameTransformManager.h
+2. SimART_GUI/src/FrameTransformManager.cpp
+3. SimART_GUI/scripts/sionna_tf_frame_utils.py
+4. SimART_GUI/scripts/transform_coords.py
+5. 样例地图 config/*matrix.json
+
+如果要理解地图和场景：
+1. Tutorials/CreateMap/CreateMap.md
+2. SimART_GUI/src/FileSceneProvider.cpp
+3. SimART_GUI/src/OsmSceneProvider.cpp
+4. SimART_sample_maps/*/*_sionna/*.xml
+
+如果要理解 rosbag 工具：
+1. SimART_GUI/src/MainWindow.cpp 中 rosbag 相关函数
+2. SimART_GUI/scripts/reprocess_rosbag_with_sionna.py
+3. SimART_GUI/scripts/sionna_resim_socket_worker.py
+
