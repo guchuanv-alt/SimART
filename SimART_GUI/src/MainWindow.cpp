@@ -4206,8 +4206,6 @@ void MainWindow::buildLeftDock() {
 
     const std::vector<std::pair<QString, QString>> items = {
         {"axes", "3D Axes"},
-        {"ground", "Ground"},
-        {"buildings", "Buildings"},
         {"scene_mesh", "Imported Scene Mesh"},
         {"base_stations", "Base Stations"},
         {"drone", "Drone"},
@@ -10467,10 +10465,6 @@ void MainWindow::applyLayerState(const QString& key, bool enabled) {
 
     if (key == "axes") {
         sceneWidget_->setAxesVisible(enabled);
-    } else if (key == "ground") {
-        sceneWidget_->setGroundVisible(enabled);
-    } else if (key == "buildings") {
-        sceneWidget_->setBuildingsVisible(enabled);
     } else if (key == "scene_mesh") {
         sceneWidget_->setSceneMeshVisible(enabled);
     } else if (key == "base_stations") {

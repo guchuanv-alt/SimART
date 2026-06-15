@@ -5,6 +5,8 @@
 
 #include <QWidget>
 #include <QString>
+#include <QElapsedTimer>
+#include <QPoint>
 #include <vector>
 
 #include <vtkSmartPointer.h>
@@ -15,6 +17,7 @@ class vtkRenderer;
 class vtkAxesActor;
 class vtkActor;
 class vtkAssembly;
+class vtkCellPicker;
 class QFrame;
 class QToolButton;
 class QLabel;
@@ -93,6 +96,7 @@ private:
     bool hasImportedSceneGeometry() const;
     bool handleMousePress(int x, int y);
     bool pickWorldPoint(int x, int y, Vec3* worldPoint, vtkActor** pickedActor = nullptr) const;
+    bool shouldRunHoverPick(const QPoint& localPos);
     int findStationActorIndex(vtkActor* actor) const;
     void emitCurrentSelection();
     QString nextStationId() const;
@@ -111,6 +115,7 @@ private:
     QVTKWidget* vtkWidget_{nullptr};
     vtkSmartPointer<vtkRenderWindow> renderWindow_;
     vtkSmartPointer<vtkRenderer> renderer_;
+    mutable vtkSmartPointer<vtkCellPicker> picker_;
     VtkViewDragBall* viewDragBall_{nullptr};
 
     WorldConfig world_;
@@ -144,6 +149,8 @@ private:
     QToolButton* hoverPinButton_{nullptr};
     int hoverCardStationIndex_{-1};
     QPoint hoverCardAnchor_;
+    QPoint lastHoverPickPos_;
+    QElapsedTimer hoverPickTimer_;
     int hoverPersistenceRadiusPx_{48};
     std::vector<QFrame*> pinnedCards_;
 };

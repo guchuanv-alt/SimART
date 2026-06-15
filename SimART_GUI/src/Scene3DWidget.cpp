@@ -58,6 +58,8 @@ namespace airsim_gui {
 
 namespace {
 
+constexpr int kHoverPickIntervalMs = 90;
+
 vtkSmartPointer<vtkActor> makeCubeActor(const Vec3& center, const Vec3& size, const Vec3& color) {
     auto cube = vtkSmartPointer<vtkCubeSource>::New();
     cube->SetCenter(center.x, center.y, center.z);
@@ -1982,6 +1984,15 @@ bool Scene3DWidget::eventFilter(QObject* watched, QEvent* event) {
                 }
                 return true;
             }
+            if (mouseEvent->buttons() != Qt::NoButton) {
+                if (!shouldKeepHoverCardVisible(QCursor::pos())) {
+                    hideHoverCard();
+                }
+                return QWidget::eventFilter(watched, event);
+            }
+            if (!shouldRunHoverPick(mouseEvent->pos())) {
+                return QWidget::eventFilter(watched, event);
+            }
             Vec3 pickedPoint;
             vtkActor* pickedActor = nullptr;
             if (pickWorldPoint(mouseEvent->x(), mouseEvent->y(), &pickedPoint, &pickedActor)) {
@@ -2161,25 +2172,36 @@ void Scene3DWidget::rebuildPathActors() {
     }
 }
 
+bool Scene3DWidget::shouldRunHoverPick(const QPoint& localPos) {
+    if (hoverPickTimer_.isValid() && hoverPickTimer_.elapsed() < kHoverPickIntervalMs) {
+        return false;
+    }
+    lastHoverPickPos_ = localPos;
+    hoverPickTimer_.restart();
+    return true;
+}
+
 bool Scene3DWidget::pickWorldPoint(int x, int y, Vec3* worldPoint, vtkActor** pickedActor) const {
     if (!renderer_ || !vtkWidget_ || !renderWindow_) {
         return false;
     }
-    auto picker = vtkSmartPointer<vtkCellPicker>::New();
-    picker->SetTolerance(0.0005);
+    if (!picker_) {
+        picker_ = vtkSmartPointer<vtkCellPicker>::New();
+        picker_->SetTolerance(0.0005);
+    }
     const int flippedY = vtkWidget_->height() - y - 1;
-    if (!picker->Pick(x, flippedY, 0.0, renderer_)) {
+    if (!picker_->Pick(x, flippedY, 0.0, renderer_)) {
         return false;
     }
     double picked[3] = {0.0, 0.0, 0.0};
-    picker->GetPickPosition(picked);
+    picker_->GetPickPosition(picked);
     if (worldPoint) {
         worldPoint->x = picked[0];
         worldPoint->y = picked[1];
         worldPoint->z = picked[2];
     }
     if (pickedActor) {
-        *pickedActor = picker->GetActor();
+        *pickedActor = picker_->GetActor();
     }
     return true;
 }
