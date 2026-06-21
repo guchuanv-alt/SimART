@@ -3,6 +3,12 @@ name: Anti-spam issue guard
 "on":
   issues:
     types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to check manually"
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -25,7 +31,25 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const issue = context.payload.issue;
+
+            let issue = context.payload.issue;
+
+            if (context.eventName === "workflow_dispatch") {
+              const issueNumber = Number(core.getInput("issue_number"));
+
+              if (!Number.isInteger(issueNumber) || issueNumber <= 0) {
+                core.setFailed(`Invalid issue_number: ${core.getInput("issue_number")}`);
+                return;
+              }
+
+              const issueResponse = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number: issueNumber
+              });
+
+              issue = issueResponse.data;
+            }
 
             if (!issue || issue.pull_request) {
               core.info("Not a normal issue, skipping.");
@@ -56,8 +80,6 @@ jobs:
               username: author
             });
 
-            const publicRepos = userInfo.data.public_repos || 0;
-            const followers = userInfo.data.followers || 0;
             const createdAt = new Date(userInfo.data.created_at);
             const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
             const newAccountDays = Number(process.env.NEW_ACCOUNT_DAYS || 180);
@@ -195,8 +217,6 @@ jobs:
 
             core.info(`Author: ${author}`);
             core.info(`Association: ${association}`);
-            core.info(`Public repos: ${publicRepos}`);
-            core.info(`Followers: ${followers}`);
             core.info(`Account age days: ${accountAgeDays}`);
             core.info(`Is new account within ${newAccountDays} days: ${isNewAccount}`);
             core.info(`Prior activity in repo: ${priorActivity}`);
@@ -242,13 +262,13 @@ jobs:
             });
 
             const commentBody = [
-              "👋 This issue was automatically closed by an anti-spam guard because it was opened by a recently created GitHub account with **no or few public repositories, no prior activity in this repository**, and the issue content matches a recent pattern of repetitive star-farming accusations.",
+              "👋 This issue was automatically closed by an anti-spam guard because it was opened by a recently created GitHub account with **no prior activity in this repository**, and the issue content matches a recent pattern of repetitive star-farming accusations.",
               "",
               "If you are a real user with a genuine report, sorry for the friction — just **leave a comment below** explaining your situation and a maintainer will reopen it.",
               "",
               "---",
               "",
-              "本 Issue 由反刷屏自动规则关闭：提交账号为近期注册账号，在 GitHub 上**无或很少公开仓库，且从未与本仓库互动**，同时 Issue 内容匹配近期重复出现的刷星举报模式。如果你是真实用户，请在下方留言说明，维护者会重新开启。"
+              "本 Issue 由反刷屏自动规则关闭：提交账号为近期注册账号，且**从未与本仓库互动**，同时 Issue 内容匹配近期重复出现的刷星举报模式。如果你是真实用户，请在下方留言说明，维护者会重新开启。"
             ].join("\n");
 
             await github.rest.issues.createComment({
