@@ -189,8 +189,6 @@ jobs:
             }
 
             const suspicious =
-              publicRepos === 0 &&
-              followers === 0 &&
               priorActivity === false &&
               isNewAccount === true &&
               keywordHit === true;
@@ -244,13 +242,13 @@ jobs:
             });
 
             const commentBody = [
-              "👋 This issue was automatically closed by an anti-spam guard because it was opened by a recently created GitHub account with **no public repositories, no followers, no prior activity in this repository**, and the issue content matches a recent pattern of repetitive star-farming accusations.",
+              "👋 This issue was automatically closed by an anti-spam guard because it was opened by a recently created GitHub account with **no or few public repositories, no prior activity in this repository**, and the issue content matches a recent pattern of repetitive star-farming accusations.",
               "",
               "If you are a real user with a genuine report, sorry for the friction — just **leave a comment below** explaining your situation and a maintainer will reopen it.",
               "",
               "---",
               "",
-              "本 Issue 由反刷屏自动规则关闭：提交账号为近期注册账号，在 GitHub 上**无公开仓库、无粉丝，且从未与本仓库互动**，同时 Issue 内容匹配近期重复出现的刷星举报模式。如果你是真实用户，请在下方留言说明，维护者会重新开启。"
+              "本 Issue 由反刷屏自动规则关闭：提交账号为近期注册账号，在 GitHub 上**无或很少公开仓库，且从未与本仓库互动**，同时 Issue 内容匹配近期重复出现的刷星举报模式。如果你是真实用户，请在下方留言说明，维护者会重新开启。"
             ].join("\n");
 
             await github.rest.issues.createComment({
