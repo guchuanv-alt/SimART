@@ -1,0 +1,21 @@
+﻿关键材质ID_key_material_id,关键材质中文名_key_material_name_zh,推荐Sionna材质_recommended_sionna_material,确定程度_certainty_level,相对介电常数_epsilon_r,电导率S每米_conductivity_s_per_m,厚度米_thickness_m,散射系数0到1_scattering_coefficient,XPD系数0到1_xpd_coefficient,散射模型_scattering_pattern,频率相关模型_frequency_model,参数来源_reference,代表颜色RGB_representative_colors_rgb,备注_notes
+asphalt_road,沥青路面,itu_medium_dry_ground,needs_weather_choice,,,,,,,,,1.000000 0.000000 0.850000,普通干燥道路可用 medium_dry_ground；雨天换 wet_ground
+brick,砖/砖墙,itu_brick,confirmed_if_source_name_matches,,,,,,,,,0.500000 0.170000 0.100000;0.620000 0.480000 0.340000;0.760000 0.720000 0.640000,砖墙或砖饰面
+building_prop_unknown,建筑附属件未知材质,custom_or_manual_review,needs_manual_review,,,,,,,,,1.000000 0.000000 0.850000,SanDiego building props 等名字不够明确
+concrete,混凝土,itu_concrete,confirmed_if_source_name_matches,,,,,,,,,0.450000 0.480000 0.320000;0.480000 0.340000 0.250000;0.480000 0.560000 0.620000;0.560000 0.550000 0.510000;0.580000 0.560000 0.520000;0.780000 0.760000 0.700000;1.000000 0.000000 0.850000,建筑主体/地基/混凝土外墙等
+construction_material_unknown,施工材料未知材质,custom_or_manual_review,needs_manual_review,,,,,,,,,1.000000 0.000000 0.850000,Construction material 名字过泛
+glass,玻璃,itu_glass,confirmed_if_source_name_matches,,,,,,,,,0.240000 0.580000 0.780000;0.550000 0.820000 0.950000,窗户/玻璃幕墙/透明玻璃
+grass_ground,草地/草坪,custom_grass_or_ground,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,草地/土壤/含水率强相关
+lane_marking_paint,道路标线漆,custom_lane_marking_paint,needs_parameter_review,,,,,,,,,0.440000 0.420000 0.380000;1.000000 0.000000 0.850000,车道线/黄色标线，通常是薄层涂料
+light_emissive_surface,灯具/发光表面,custom_light_surface,needs_parameter_review,,,,,,,,,0.350000 0.360000 0.380000;0.450000 0.480000 0.320000;0.480000 0.300000 0.160000;0.500000 0.170000 0.100000;0.560000 0.550000 0.510000;0.620000 0.620000 0.580000;0.780000 0.760000 0.700000;1.000000 0.000000 0.850000,视觉 emissive 不等于 RF 材质，需确认灯罩/玻璃/塑料/金属
+metal,金属,itu_metal,confirmed_if_source_name_matches,,,,,,,,,0.440000 0.420000 0.380000,金属栏杆/金属配件/金属外墙
+metal_wood_trim,金属木质混合装饰件,custom_or_split_metal_wood,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,名字显示混合材质，最好人工确认或拆分
+plastic_vinyl_siding,塑料/乙烯基外墙板,custom_vinyl_or_plastic,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,vinyl/plastic siding，需要自定义参数
+roof_bitumen,沥青/防水卷材屋顶,custom_roof_bitumen_or_nearest_concrete,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,屋顶 bitumen/asphalt，最好单独查屋面材料参数
+stone_masonry,石材/大理石/花岗岩/灰泥,custom_or_nearest_concrete,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,stone/marble/granite/stucco 类应查材料参数；可临时近似混凝土
+traffic_sign_panel,交通标志牌/信号牌,custom_sign_panel,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,可能是金属板、塑料膜、反光膜或复合材料
+unknown_shared_texture,共享贴图未知材质,custom_or_manual_review,needs_manual_review,,,,,,,,,1.000000 0.000000 0.850000,SharedTexture 只说明贴图复用，不说明物理材质
+urban_prop_unknown,城市小物件/道具未知材质,custom_or_manual_review,needs_manual_review,,,,,,,,,1.000000 0.000000 0.850000,小物件材质不明确，需按对象再判断
+vegetation_leaves,树叶/植被叶片,custom_vegetation_leaves,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,植被叶片含水率强相关，需要查文献或设湿度情景
+vegetation_trunk_wood,树干/木质植被,itu_wood,medium_confidence,,,,,,,,,0.360000 0.230000 0.120000;1.000000 0.000000 0.850000,树干可先近似 wood，但含水率也会影响
+water,水,custom_water,needs_parameter_review,,,,,,,,,1.000000 0.000000 0.850000,喷泉水/积水，需要频率相关介电参数

@@ -256,6 +256,11 @@ private slots:
     void onCkmProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onCkmPointSelectionChanged(const QString& title, const QString& summary, const QString& details);
     void onCkmPointSelectionCleared(const QString& hint);
+    void showAgentChatPanel();
+    void sendAgentChatRequest();
+    void onAgentProcessOutput();
+    void onAgentProcessError(QProcess::ProcessError error);
+    void onAgentProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -386,6 +391,7 @@ private:
     void buildLeftDock();
     void buildRightDock();
     void buildDeveloperToolsDock();
+    void buildAgentChatDock();
     void loadInitialData();
     void promptStartupConfigChoice();
     QString findConfigFile(const QString& relativePath) const;
@@ -529,6 +535,9 @@ private:
     bool restoreRosbagPlaybackPoseBridge(QString* errorMessage = nullptr);
     QString ensureRuntimeLogFile();
     void appendRuntimeLogLine(const QString& channel, const QString& text);
+    QString simartRepoRootPath() const;
+    void appendAgentChatMessage(const QString& speaker, const QString& text, const QString& color = QString());
+    void setAgentChatRunning(bool running);
     void showShortDiagnosticWarning(const QString& title, const QString& summary, const QString& detail);
     double currentAirSimBrightnessFactor() const;
     static QVector<int> parseBeamTopkIndices(const QString& text);
@@ -579,6 +588,8 @@ private:
     QProcess* rosbagPlayProcess_{nullptr};
     QProcess* rosbagResimProcess_{nullptr};
     QProcess* managedRoscoreProcess_{nullptr};
+    QProcess* agentProcess_{nullptr};
+    QString agentPendingOutput_;
     QString simulatorLog_;
     QString runtimeLogFilePath_;
     QString rosbagToolsLog_;
@@ -620,6 +631,7 @@ private:
     qint64 stationCameraLastAirSimConnectedMs_{0};
 
     QDockWidget* layersDock_{nullptr};
+    QDockWidget* agentChatDock_{nullptr};
     QDockWidget* lastLeftDock_{nullptr};
     std::vector<StationCameraWindow> stationCameraWindows_;
     QTimer* stationCameraDemandTimer_{nullptr};
@@ -718,6 +730,13 @@ private:
     QPushButton* rosbagRecordToggleButton_{nullptr};
     QLabel* rosbagRecordStatusValue_{nullptr};
     QPushButton* rosbagToolsButton_{nullptr};
+    QPlainTextEdit* agentChatView_{nullptr};
+    QPlainTextEdit* agentChatInput_{nullptr};
+    QLineEdit* agentApiKeyEdit_{nullptr};
+    QCheckBox* agentApplyCheck_{nullptr};
+    QPushButton* agentSendButton_{nullptr};
+    QPushButton* agentClearButton_{nullptr};
+    QLabel* agentStatusValue_{nullptr};
 
     QMainWindow* rfDataWindow_{nullptr};
     QScrollArea* rfDataScroll_{nullptr};
@@ -755,6 +774,7 @@ private:
     QAction* showRfDataWindowAction_{nullptr};
     QAction* showSysDataWindowAction_{nullptr};
     QAction* showDeveloperToolsAction_{nullptr};
+    QAction* showAgentChatAction_{nullptr};
     QAction* stopAirSimLiveViewAction_{nullptr};
     QAction* showRosbagToolsAction_{nullptr};
     QAction* editorViewAction_{nullptr};

@@ -30,6 +30,10 @@ def main() -> int:
     cfg = load_config(DEFAULT_CONFIG_PATH, scene_filename=args.scene)
     cfg.title = args.title
     cfg.use_live_reload = False
+    # Show the full imported city by default. The upstream GUI enables a slice
+    # plane at the scene bbox z-center, which cuts BigCitySample in half because
+    # z is a horizontal map axis for these Sionna scenes.
+    cfg.rendering.default_slice_plane_enabled = False
     if args.envmap:
         cfg.rendering.envmap = args.envmap
 

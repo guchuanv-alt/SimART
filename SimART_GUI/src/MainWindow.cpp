@@ -3743,12 +3743,14 @@ MainWindow::MainWindow(QWidget* parent)
     rosbagPlayProcess_ = new QProcess(this);
     rosbagResimProcess_ = new QProcess(this);
     managedRoscoreProcess_ = new QProcess(this);
+    agentProcess_ = new QProcess(this);
     simulatorProcess_->setProcessChannelMode(QProcess::MergedChannels);
     ckmProcess_->setProcessChannelMode(QProcess::MergedChannels);
     rosbagRecordProcess_->setProcessChannelMode(QProcess::MergedChannels);
     rosbagPlayProcess_->setProcessChannelMode(QProcess::MergedChannels);
     rosbagResimProcess_->setProcessChannelMode(QProcess::MergedChannels);
     managedRoscoreProcess_->setProcessChannelMode(QProcess::MergedChannels);
+    agentProcess_->setProcessChannelMode(QProcess::MergedChannels);
 
     connect(rosBridge_, &RosBridge::droneUpdated, this, &MainWindow::onDroneUpdated);
     connect(rosBridge_, &RosBridge::pathsUpdated, this, &MainWindow::onPathsUpdated);
@@ -3780,6 +3782,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(rosbagResimProcess_, &QProcess::readyReadStandardOutput, this, &MainWindow::onRosbagResimOutput);
     connect(rosbagResimProcess_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &MainWindow::onRosbagResimFinished);
+    connect(agentProcess_, &QProcess::readyReadStandardOutput, this, &MainWindow::onAgentProcessOutput);
+    connect(agentProcess_, &QProcess::errorOccurred, this, &MainWindow::onAgentProcessError);
+    connect(agentProcess_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &MainWindow::onAgentProcessFinished);
 
     sysDataRefreshTimer_ = new QTimer(this);
     sysDataRefreshTimer_->setSingleShot(true);
@@ -4076,6 +4082,7 @@ void MainWindow::buildUi() {
     buildLeftDock();
     buildRightDock();
     buildDeveloperToolsDock();
+    buildAgentChatDock();
     syncDroneCameraImageLayerItems();
 
     if (airSimViewController_) {
@@ -4151,6 +4158,7 @@ void MainWindow::buildMenuBar() {
     showRfDataWindowAction_ = viewMenu->addAction(tr("Wireless Data Monitor"), this, &MainWindow::showRfDataWindow);
     showSysDataWindowAction_ = viewMenu->addAction(tr("Sionna SYS Monitor"), this, &MainWindow::showSysDataWindow);
     showDeveloperToolsAction_ = viewMenu->addAction(tr("Developer Tools"), this, &MainWindow::showDeveloperToolsPanel);
+    showAgentChatAction_ = viewMenu->addAction(tr("Agent Chat"), this, &MainWindow::showAgentChatPanel);
 
     auto* stationMenu = menuBar()->addMenu(tr("Base Stations"));
     loadBaseStationsAction_ = stationMenu->addAction(tr("Load Base Stations JSON..."), this, &MainWindow::loadBaseStationsJson);
@@ -4184,6 +4192,7 @@ void MainWindow::buildToolBar() {
     toolbar->addAction(tr("Wireless Data"), this, &MainWindow::showRfDataWindow);
     toolbar->addAction(tr("Sionna SYS"), this, &MainWindow::showSysDataWindow);
     toolbar->addAction(tr("Dev Tools"), this, &MainWindow::showDeveloperToolsPanel);
+    toolbar->addAction(tr("Agent Chat"), this, &MainWindow::showAgentChatPanel);
     toolbar->addAction(tr("Rosbag Tools"), this, &MainWindow::showRosbagToolsWindow);
     toolbar->addSeparator();
     toolbar->addAction(tr("Reset Camera"), sceneWidget_, &Scene3DWidget::resetCamera);
@@ -4785,6 +4794,233 @@ void MainWindow::showDeveloperToolsPanel() {
     developerToolsWindow_->show();
     developerToolsWindow_->raise();
     developerToolsWindow_->activateWindow();
+}
+
+void MainWindow::buildAgentChatDock() {
+    if (agentChatDock_) {
+        return;
+    }
+
+    agentChatDock_ = new QDockWidget(tr("Agent Chat"), this);
+    agentChatDock_->setObjectName(QStringLiteral("agentChatDock"));
+    agentChatDock_->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    agentChatDock_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+
+    auto* container = new QWidget(agentChatDock_);
+    auto* layout = new QVBoxLayout(container);
+    layout->setContentsMargins(8, 8, 8, 8);
+    layout->setSpacing(8);
+
+    auto* title = new QLabel(tr("SimART Material Asset Agent"), container);
+    title->setStyleSheet(QStringLiteral("font-weight: 700; font-size: 15px;"));
+    layout->addWidget(title);
+
+    auto* hint = new QLabel(tr("Ask the agent to modify BigCity materials through the FBX -> Blender -> Sionna XML pipeline. Enable Apply changes before writing FBX/Blend/XML files."), container);
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: #586574;"));
+    layout->addWidget(hint);
+
+    auto* optionsBox = new QGroupBox(tr("Agent Settings"), container);
+    auto* optionsLayout = new QFormLayout(optionsBox);
+    agentApiKeyEdit_ = new QLineEdit(optionsBox);
+    agentApiKeyEdit_->setEchoMode(QLineEdit::Password);
+    agentApiKeyEdit_->setPlaceholderText(tr("Leave empty to use DEEPSEEK_API_KEY"));
+    agentApplyCheck_ = new QCheckBox(tr("Apply changes"), optionsBox);
+    optionsLayout->addRow(tr("DeepSeek API Key"), agentApiKeyEdit_);
+    optionsLayout->addRow(QString(), agentApplyCheck_);
+    layout->addWidget(optionsBox);
+
+    agentChatView_ = new QPlainTextEdit(container);
+    agentChatView_->setReadOnly(true);
+    agentChatView_->setPlaceholderText(tr("Agent conversation will appear here."));
+    agentChatView_->setMinimumHeight(220);
+    layout->addWidget(agentChatView_, 1);
+    appendAgentChatMessage(QStringLiteral("Agent"),
+                           QStringLiteral("Ready. Example: Replace concrete with glass in BigCitySample."),
+                           QStringLiteral("#1d4ed8"));
+
+    agentChatInput_ = new QPlainTextEdit(container);
+    agentChatInput_->setPlaceholderText(tr("Type a request. Example: Replace concrete with glass in BigCitySample."));
+    agentChatInput_->setMaximumHeight(90);
+    layout->addWidget(agentChatInput_);
+
+    auto* buttonRow = new QWidget(container);
+    auto* buttonLayout = new QHBoxLayout(buttonRow);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
+    agentStatusValue_ = new QLabel(tr("Ready"), buttonRow);
+    agentStatusValue_->setStyleSheet(QStringLiteral("color: #586574;"));
+    agentSendButton_ = new QPushButton(tr("Send"), buttonRow);
+    agentClearButton_ = new QPushButton(tr("Clear"), buttonRow);
+    buttonLayout->addWidget(agentStatusValue_, 1);
+    buttonLayout->addWidget(agentClearButton_);
+    buttonLayout->addWidget(agentSendButton_);
+    layout->addWidget(buttonRow);
+
+    connect(agentSendButton_, &QPushButton::clicked, this, &MainWindow::sendAgentChatRequest);
+    connect(agentClearButton_, &QPushButton::clicked, this, [this]() {
+        if (agentChatView_) {
+            agentChatView_->clear();
+        }
+    });
+
+    agentChatDock_->setWidget(container);
+    addDockWidget(Qt::RightDockWidgetArea, agentChatDock_);
+    agentChatDock_->hide();
+}
+
+void MainWindow::showAgentChatPanel() {
+    if (!agentChatDock_) {
+        buildAgentChatDock();
+    }
+    agentChatDock_->setFloating(true);
+    agentChatDock_->resize(560, 720);
+    agentChatDock_->show();
+    agentChatDock_->raise();
+    agentChatDock_->activateWindow();
+    onStatusMessage(tr("Agent Chat panel opened."));
+}
+
+QString MainWindow::simartRepoRootPath() const {
+    QString candidate = findConfigFile(QStringLiteral("../agent/material_asset_agent.py"));
+    if (QFileInfo::exists(candidate)) {
+        return QFileInfo(candidate).absoluteDir().absolutePath() + QStringLiteral("/..");
+    }
+
+    QDir dir(QDir::currentPath());
+    while (!dir.isRoot()) {
+        if (QFileInfo::exists(dir.filePath(QStringLiteral("agent/material_asset_agent.py")))) {
+            return dir.absolutePath();
+        }
+        dir.cdUp();
+    }
+    return QDir::currentPath();
+}
+
+void MainWindow::appendAgentChatMessage(const QString& speaker, const QString& text, const QString& color) {
+    Q_UNUSED(color);
+    if (!agentChatView_) {
+        return;
+    }
+    const QString trimmed = text.trimmed();
+    if (trimmed.isEmpty()) {
+        return;
+    }
+    agentChatView_->appendPlainText(QStringLiteral("%1:").arg(speaker));
+    agentChatView_->appendPlainText(trimmed);
+    agentChatView_->appendPlainText(QString());
+    QTextCursor cursor = agentChatView_->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    agentChatView_->setTextCursor(cursor);
+}
+
+void MainWindow::setAgentChatRunning(bool running) {
+    if (agentSendButton_) {
+        agentSendButton_->setEnabled(!running);
+    }
+    if (agentStatusValue_) {
+        agentStatusValue_->setText(running ? tr("Running...") : tr("Ready"));
+    }
+}
+
+void MainWindow::sendAgentChatRequest() {
+    if (!agentProcess_ || !agentChatInput_) {
+        return;
+    }
+    if (agentProcess_->state() != QProcess::NotRunning) {
+        appendAgentChatMessage(QStringLiteral("System"), QStringLiteral("Agent is still running. Please wait."));
+        return;
+    }
+
+    const QString request = agentChatInput_->toPlainText().trimmed();
+    if (request.isEmpty()) {
+        return;
+    }
+
+    const bool applyChanges = agentApplyCheck_ && agentApplyCheck_->isChecked();
+    if (applyChanges) {
+        const auto answer = QMessageBox::question(
+            this,
+            tr("Confirm Asset Write"),
+            tr("Apply changes is enabled. The agent may write FBX, Blender, and Sionna XML files. Continue?"));
+        if (answer != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    const QString repoRoot = QDir::cleanPath(simartRepoRootPath());
+    const QString agentFile = QDir(repoRoot).filePath(QStringLiteral("agent/material_asset_agent.py"));
+    if (!QFileInfo::exists(agentFile)) {
+        appendAgentChatMessage(QStringLiteral("System"),
+                               tr("Cannot find agent/material_asset_agent.py from repo root: %1").arg(repoRoot));
+        return;
+    }
+
+    QStringList args;
+    args << QStringLiteral("-m") << QStringLiteral("agent.material_asset_agent");
+    if (applyChanges) {
+        args << QStringLiteral("--apply");
+    }
+    args << request;
+
+    const QString pythonProgram = simSettings_.pythonExecutable.trimmed().isEmpty()
+        ? QStringLiteral("python3")
+        : simSettings_.pythonExecutable.trimmed();
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    const QString apiKey = agentApiKeyEdit_ ? agentApiKeyEdit_->text().trimmed() : QString();
+    if (!apiKey.isEmpty()) {
+        env.insert(QStringLiteral("DEEPSEEK_API_KEY"), apiKey);
+    }
+    env.insert(QStringLiteral("DEEPSEEK_BASE_URL"), env.value(QStringLiteral("DEEPSEEK_BASE_URL"), QStringLiteral("https://api.deepseek.com")));
+
+    agentPendingOutput_.clear();
+    agentProcess_->setWorkingDirectory(repoRoot);
+    agentProcess_->setProcessEnvironment(env);
+
+    appendAgentChatMessage(QStringLiteral("You"), request);
+    appendAgentChatMessage(QStringLiteral("System"),
+                           QStringLiteral("Running: %1 %2").arg(pythonProgram, args.join(QStringLiteral(" "))));
+    agentChatInput_->clear();
+    setAgentChatRunning(true);
+    agentProcess_->start(pythonProgram, args);
+    if (!agentProcess_->waitForStarted(3000)) {
+        setAgentChatRunning(false);
+        appendAgentChatMessage(QStringLiteral("System"),
+                               tr("Failed to start agent process: %1").arg(agentProcess_->errorString()));
+    }
+}
+
+void MainWindow::onAgentProcessOutput() {
+    if (!agentProcess_) {
+        return;
+    }
+    agentPendingOutput_ += QString::fromLocal8Bit(agentProcess_->readAllStandardOutput());
+}
+
+void MainWindow::onAgentProcessError(QProcess::ProcessError error) {
+    Q_UNUSED(error);
+    setAgentChatRunning(false);
+    appendAgentChatMessage(QStringLiteral("System"),
+                           tr("Agent process error: %1").arg(agentProcess_ ? agentProcess_->errorString() : QStringLiteral("unknown")));
+}
+
+void MainWindow::onAgentProcessFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+    if (agentProcess_) {
+        agentPendingOutput_ += QString::fromLocal8Bit(agentProcess_->readAllStandardOutput());
+    }
+    setAgentChatRunning(false);
+
+    const QString output = agentPendingOutput_.trimmed();
+    if (!output.isEmpty()) {
+        appendAgentChatMessage(exitStatus == QProcess::NormalExit && exitCode == 0
+                                   ? QStringLiteral("Agent")
+                                   : QStringLiteral("Agent Error"),
+                               output);
+    } else {
+        appendAgentChatMessage(QStringLiteral("System"),
+                               tr("Agent finished with no output. Exit code: %1").arg(exitCode));
+    }
+    agentPendingOutput_.clear();
 }
 
 void MainWindow::refreshDeveloperTopicList() {

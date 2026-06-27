@@ -1,1 +1,1 @@
-"""Learning-oriented LangChain agent examples for SimART."""
+"""Asset tools for preparing SimART visual FBX and Sionna XML scenes."""

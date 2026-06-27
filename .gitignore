@@ -11,3 +11,6 @@ SimART_sample_maps.zip
 .codex
 SimART_sample_rosbags/
 .venv-agent/
+.tools/
+.env
+agent/.env

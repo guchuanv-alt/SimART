@@ -709,10 +709,10 @@ def build_sys_snapshot(rows: List[Dict[str, Any]], params: Dict[str, Any]) -> Di
             "anchor_name": "",
             "rate_bpshz": None,
             "sinr_eff_db": None,
-            "mcs_index": None,
-            "num_decoded_bits": None,
+            "mcs_index": -1,
+            "num_decoded_bits": 0,
             "tb_status": TB_STATUS_UNKNOWN,
-            "spectral_efficiency_bpshz": None,
+            "spectral_efficiency_bpshz": 0.0,
         },
         "candidates": [],
     }

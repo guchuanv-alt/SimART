@@ -1,0 +1,319 @@
+visual_material,target_material,decision,reason
+Brick1_rrx_Ground,itu_brick,confirmed,direct brick material name or texture
+Bricks1_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks20_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks7_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks7_Prop,itu_brick,confirmed,direct brick material name or texture
+Bricks8_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_Building_1,itu_brick,confirmed,direct brick material name or texture
+Bricks_Building_2,itu_brick,confirmed,direct brick material name or texture
+Bricks_Building_3,itu_brick,confirmed,direct brick material name or texture
+Bricks_Building_4,itu_brick,confirmed,direct brick material name or texture
+Bricks_Prop,itu_brick,confirmed,direct brick material name or texture
+Bricks_Tan1_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_Tan2_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_Tan_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_White1_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_White2_Building,itu_brick,confirmed,direct brick material name or texture
+Bricks_White2_Building_1,itu_brick,confirmed,direct brick material name or texture
+Bricks_White_Building,itu_brick,confirmed,direct brick material name or texture
+Emmissive_SidingBrickFlat_Building,itu_brick,confirmed,direct brick material name or texture
+AnotherInteriorGlow_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Cement_Prop,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete1_Curb,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete1_Ground,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete1_Gutter,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete1_Sidewalk,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_BlueGray1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_BlueGray_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_BlueGray_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Brown1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Brown_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Olive1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Olive2_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Olive2_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Olive_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_Olive_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White26_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White26_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White28_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White28_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White28_Building_2,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White2_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_10,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_2,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_3,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_4,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_5,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_6,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_7,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_8,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Building_9,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Prop,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Trim1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Trim2_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Trim2_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Trim_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_White_Trim_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_WhiteEmissive1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_WhiteEmissive1_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Concrete_WhiteEmissive1_Prop,itu_concrete,confirmed,direct concrete/cement material name or texture
+Emmissive_ConcretePopcorn_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete2_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_2,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_3,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_4,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_5,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_6,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_7,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Building_8,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete3_Prop,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete4_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete4_Building_1,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete4_Building_2,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete4_Building_3,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete4_Building_4,itu_concrete,confirmed,direct concrete/cement material name or texture
+Foundation_Concrete5_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Fountain_Concrete_Tex1_Prop,itu_concrete,confirmed,direct concrete/cement material name or texture
+SkyScraper_40mx40m_31Story:Concrete_Brown1_Building,itu_concrete,confirmed,direct concrete/cement material name or texture
+Glass11_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass12_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass13_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass13_Building_1,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass13_Building_2,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass1_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_1,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_2,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_3,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_4,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_5,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_6,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_7,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Building_8,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass3_Prop,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass4_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass4_Building_1,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass4_Building_2,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Prop,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Transparent2_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Transparent2_Building_1,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Transparent2_Prop,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Glass_Transparent_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+SkyScraper_40mx40m_31Story:Chair_Tex1_Building,itu_glass,confirmed,direct glass/window/transparent material name or texture
+Emmissive_Iron01_Building,itu_metal,confirmed,direct metal/iron/steel material name or texture
+Emmissive_ShinyMetal01_Building,itu_metal,confirmed,direct metal/iron/steel material name or texture
+Metal_Emissive1_Building,itu_metal,confirmed,direct metal/iron/steel material name or texture
+Metal_Emissive1_Prop,itu_metal,confirmed,direct metal/iron/steel material name or texture
+Metal_Emissive3_Building,itu_metal,confirmed,direct metal/iron/steel material name or texture
+MetalFence01_Marking,itu_metal,confirmed,direct metal/iron/steel material name or texture
+phong2_Prop,itu_metal,confirmed,direct metal/iron/steel material name or texture
+Birch01_Trunk_Prop,itu_wood,confirmed,direct wood/bark material name or texture
+WoodFloor_Emissive2_Building,itu_wood,confirmed,direct wood/bark material name or texture
+WoodFloor_Emissive2_Prop,itu_wood,confirmed,direct wood/bark material name or texture
+WoodFloor_Emissive3_Building,itu_wood,confirmed,direct wood/bark material name or texture
+WoodFloor_Emissive_Building,itu_wood,confirmed,direct wood/bark material name or texture
+Asphalt1_Road,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Construction_mat_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Emissive_Marble1_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Emissive_MetalWood_Trim1_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+Emmissive_LightMarble_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Emmissive_SanDiego_Building_Props_03_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Emmissive_SidingCalcattaMarble_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Emmissive_SidingVinylPlating_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Emmissive_StuccoWall01_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Foundation_MAT1_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Fountain_Water_Tex1_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Grass1_Ground,simart_uncertain_review,uncertain_review,terrain/ground/tree role needs project policy
+InteriorGlow_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+LaneMarking1_Marking,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+LaneMarkingYellow1_Marking,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Leaves1_Prop,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves3_Prop,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves4_Foliage,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves6_Prop,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_1,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_2,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_3,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_4,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_5,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_6,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_7,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_8,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Leaves_Foliage_9,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Light_material_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Prop_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Prop_2,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_2,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_3,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_4,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_5,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Light_material_Signal_6,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+Mailbox_Mat_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+MetalWood_Trim1_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim27_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim27_Building_1,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim30_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim30_Building_1,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim31_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_1,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_10,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_11,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_2,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_3,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_4,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_5,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_6,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_7,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_8,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Building_9,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+MetalWood_Trim_Prop,simart_uncertain_review,uncertain_review,compound MetalWood visual material; choose policy manually
+Roof_Asphalt1_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt1_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt1_Building_2,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt1_Building_3,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt2_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt3_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Asphalt3_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen1_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_2,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_3,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_4,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_5,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_6,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_7,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_8,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Building_9,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen36_Prop,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen37_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen37_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen4_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen4_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen5_Building,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+Roof_Bitumen5_Building_1,simart_uncertain_review,uncertain_review,road/sidewalk/asphalt-like role; needs project policy
+SanDiego_Building_Props_01_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_01_Prop_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_02_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_03_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_03_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_05_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_07_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_07_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_13_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_19_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_19_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_19_Building_2,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_19_Building_3,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_28_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_10,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_2,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_3,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_4,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_5,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_6,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_7,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_8,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Building_9,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_29_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_30_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_30_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_30_Building_2,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_31_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_32_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_32_Building_1,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SanDiego_Building_Props_33_Building,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SandiegoProps_Prop,simart_uncertain_review,uncertain_review,visual asset/material family needs manual review
+SharedTexture02_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_1,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_10,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_11,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_12,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_13,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_2,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_3,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_4,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_5,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_6,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_7,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_8,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture02_Prop_9,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture05Emissive1_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture05Emissive_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture06_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SharedTexture06_Prop_1,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_OneWay1_Flipped-Back.png_RightOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_OneWay1_Flipped.svg_rrx_RightOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R1-1-Back.png_StopSign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R1-1.svg_StopSign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R1-5-Back.png_Sign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R1-5.svg_rrx_Sign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R4-7c-Back.png_KeepRightSign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R4-7c.svg_rrx_KeepRightSign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R5-1-Back.png_Sign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R5-1.svg_rrx_Sign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R6-1-Back.png_LeftOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R6-1.svg_rrx_LeftOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R6-2_R-Back.png_RightOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Sign_R6-2_R.svg_rrx_RightOneWaySign,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Signals_LightsOff01_Diff.png_Signal,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Signals_LightsOn01_Diff.png_Signal,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+SkyScraper_40mx40m_31Story:GraniteGlossy1_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim1_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_1,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_2,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_3,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_4,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_5,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_6,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Building_7,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim3_Prop,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim4_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim4_Building_1,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim4_Building_2,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim4_Building_3,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim8_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim9_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim9_Building_1,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim9_Building_2,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stone_Trim9_Building_3,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stones_Large3_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stones_Large7_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stones_Large8_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Stones_Large_Building,simart_uncertain_review,uncertain_review,stone/marble/stucco is not an exact provided Sionna preset
+Trunk_Foliage,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_1,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_2,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_3,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_4,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_5,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Trunk_Foliage_6,simart_uncertain_review,uncertain_review,vegetation material; needs project policy
+Urban_Mat_FireHydrantProp,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_1,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_10,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_11,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_2,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_3,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_4,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_5,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_6,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_7,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_8,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review
+Urban_Mat_Prop_9,simart_uncertain_review,uncertain_review,no direct physical material keyword; needs manual review

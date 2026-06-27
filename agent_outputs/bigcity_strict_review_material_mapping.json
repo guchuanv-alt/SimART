@@ -1,0 +1,1910 @@
+[
+  {
+    "visual_material": "Brick1_rrx_Ground",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks1_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks20_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks7_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks7_Prop",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks8_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Building_1",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Building_2",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Building_3",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Building_4",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Prop",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Tan1_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Tan2_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_Tan_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_White1_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_White2_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_White2_Building_1",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Bricks_White_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "Emmissive_SidingBrickFlat_Building",
+    "target_material": "itu_brick",
+    "decision": "confirmed",
+    "reason": "direct brick material name or texture"
+  },
+  {
+    "visual_material": "AnotherInteriorGlow_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Cement_Prop",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete1_Curb",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete1_Ground",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete1_Gutter",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete1_Sidewalk",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_BlueGray1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_BlueGray_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_BlueGray_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Brown1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Brown_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Olive1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Olive2_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Olive2_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Olive_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_Olive_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White26_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White26_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White28_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White28_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White28_Building_2",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White2_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_10",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_2",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_3",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_4",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_5",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_6",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_7",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_8",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Building_9",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Prop",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Trim1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Trim2_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Trim2_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Trim_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_White_Trim_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_WhiteEmissive1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_WhiteEmissive1_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Concrete_WhiteEmissive1_Prop",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Emmissive_ConcretePopcorn_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete2_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_2",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_3",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_4",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_5",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_6",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_7",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Building_8",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete3_Prop",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete4_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete4_Building_1",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete4_Building_2",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete4_Building_3",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete4_Building_4",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Foundation_Concrete5_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Fountain_Concrete_Tex1_Prop",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "SkyScraper_40mx40m_31Story:Concrete_Brown1_Building",
+    "target_material": "itu_concrete",
+    "decision": "confirmed",
+    "reason": "direct concrete/cement material name or texture"
+  },
+  {
+    "visual_material": "Glass11_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass12_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass13_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass13_Building_1",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass13_Building_2",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass1_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_1",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_2",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_3",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_4",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_5",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_6",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_7",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Building_8",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass3_Prop",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass4_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass4_Building_1",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass4_Building_2",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Prop",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Transparent2_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Transparent2_Building_1",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Transparent2_Prop",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Glass_Transparent_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "SkyScraper_40mx40m_31Story:Chair_Tex1_Building",
+    "target_material": "itu_glass",
+    "decision": "confirmed",
+    "reason": "direct glass/window/transparent material name or texture"
+  },
+  {
+    "visual_material": "Emmissive_Iron01_Building",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "Emmissive_ShinyMetal01_Building",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "Metal_Emissive1_Building",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "Metal_Emissive1_Prop",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "Metal_Emissive3_Building",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "MetalFence01_Marking",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "phong2_Prop",
+    "target_material": "itu_metal",
+    "decision": "confirmed",
+    "reason": "direct metal/iron/steel material name or texture"
+  },
+  {
+    "visual_material": "Birch01_Trunk_Prop",
+    "target_material": "itu_wood",
+    "decision": "confirmed",
+    "reason": "direct wood/bark material name or texture"
+  },
+  {
+    "visual_material": "WoodFloor_Emissive2_Building",
+    "target_material": "itu_wood",
+    "decision": "confirmed",
+    "reason": "direct wood/bark material name or texture"
+  },
+  {
+    "visual_material": "WoodFloor_Emissive2_Prop",
+    "target_material": "itu_wood",
+    "decision": "confirmed",
+    "reason": "direct wood/bark material name or texture"
+  },
+  {
+    "visual_material": "WoodFloor_Emissive3_Building",
+    "target_material": "itu_wood",
+    "decision": "confirmed",
+    "reason": "direct wood/bark material name or texture"
+  },
+  {
+    "visual_material": "WoodFloor_Emissive_Building",
+    "target_material": "itu_wood",
+    "decision": "confirmed",
+    "reason": "direct wood/bark material name or texture"
+  },
+  {
+    "visual_material": "Asphalt1_Road",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Construction_mat_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Emissive_Marble1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Emissive_MetalWood_Trim1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "Emmissive_LightMarble_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Emmissive_SanDiego_Building_Props_03_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Emmissive_SidingCalcattaMarble_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Emmissive_SidingVinylPlating_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Emmissive_StuccoWall01_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Foundation_MAT1_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Fountain_Water_Tex1_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Grass1_Ground",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "terrain/ground/tree role needs project policy"
+  },
+  {
+    "visual_material": "InteriorGlow_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "LaneMarking1_Marking",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "LaneMarkingYellow1_Marking",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Leaves1_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves3_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves4_Foliage",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves6_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Leaves_Foliage_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Light_material_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Prop_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Prop_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Light_material_Signal_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "Mailbox_Mat_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "MetalWood_Trim1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim27_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim27_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim30_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim30_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim31_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_10",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_11",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Building_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "MetalWood_Trim_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "compound MetalWood visual material; choose policy manually"
+  },
+  {
+    "visual_material": "Roof_Asphalt1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt1_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt1_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt1_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt2_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt3_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Asphalt3_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Building_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen36_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen37_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen37_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen4_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen4_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen5_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "Roof_Bitumen5_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "road/sidewalk/asphalt-like role; needs project policy"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_01_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_01_Prop_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_02_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_03_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_03_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_05_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_07_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_07_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_13_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_19_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_19_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_19_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_19_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_28_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_10",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Building_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_29_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_30_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_30_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_30_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_31_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_32_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_32_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SanDiego_Building_Props_33_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SandiegoProps_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "visual asset/material family needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_10",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_11",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_12",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_13",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture02_Prop_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture05Emissive1_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture05Emissive_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture06_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SharedTexture06_Prop_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_OneWay1_Flipped-Back.png_RightOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_OneWay1_Flipped.svg_rrx_RightOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R1-1-Back.png_StopSign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R1-1.svg_StopSign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R1-5-Back.png_Sign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R1-5.svg_rrx_Sign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R4-7c-Back.png_KeepRightSign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R4-7c.svg_rrx_KeepRightSign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R5-1-Back.png_Sign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R5-1.svg_rrx_Sign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R6-1-Back.png_LeftOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R6-1.svg_rrx_LeftOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R6-2_R-Back.png_RightOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Sign_R6-2_R.svg_rrx_RightOneWaySign",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Signals_LightsOff01_Diff.png_Signal",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Signals_LightsOn01_Diff.png_Signal",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "SkyScraper_40mx40m_31Story:GraniteGlossy1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim1_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Building_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim3_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim4_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim4_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim4_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim4_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim8_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim9_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim9_Building_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim9_Building_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stone_Trim9_Building_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stones_Large3_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stones_Large7_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stones_Large8_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Stones_Large_Building",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "stone/marble/stucco is not an exact provided Sionna preset"
+  },
+  {
+    "visual_material": "Trunk_Foliage",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Trunk_Foliage_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "vegetation material; needs project policy"
+  },
+  {
+    "visual_material": "Urban_Mat_FireHydrantProp",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_1",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_10",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_11",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_2",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_3",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_4",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_5",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_6",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_7",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_8",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  },
+  {
+    "visual_material": "Urban_Mat_Prop_9",
+    "target_material": "simart_uncertain_review",
+    "decision": "uncertain_review",
+    "reason": "no direct physical material keyword; needs manual review"
+  }
+]
