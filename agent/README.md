@@ -2,6 +2,12 @@
 
 This folder currently keeps only the asset-level material workflow.
 
+For moving this work to a new machine, see:
+
+```text
+agent/CONTINUE_ON_NEW_MACHINE.md
+```
+
 The goal is:
 
 1. Edit the visual asset used by the main SimART GUI.
