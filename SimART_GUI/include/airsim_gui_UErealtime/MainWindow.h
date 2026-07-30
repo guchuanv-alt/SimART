@@ -98,7 +98,6 @@ struct SimulationSettings {
     double sysTemperatureK{294.0};
     double sysBlerTarget{0.1};
     int sysMcsTableIndex{1};
-    double sysBsTxPowerDbm{10.0};
 
     bool enableBeamforming{false};
     QString beamSelectionMode{QStringLiteral("exhaustive_sweep")};
@@ -677,6 +676,7 @@ private:
     QDoubleSpinBox* stationXSpin_{nullptr};
     QDoubleSpinBox* stationYSpin_{nullptr};
     QDoubleSpinBox* stationZSpin_{nullptr};
+    QDoubleSpinBox* stationTxPowerSpin_{nullptr};
     QDoubleSpinBox* stationPreviewOffsetZSpin_{nullptr};
     QDoubleSpinBox* stationColorRSpin_{nullptr};
     QDoubleSpinBox* stationColorGSpin_{nullptr};

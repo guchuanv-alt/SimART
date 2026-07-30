@@ -38,11 +38,11 @@ GUI 中使用 3 个坐标系：
 
 ## 4. 添加基站
 
-在 `Controls/Live info` 面板的 `Bse Stations` 窗口中，点击 `Add`，然后在场景中希望放置基站的位置点击一次，基站就会被放置到点击的位置。当某个基站被选中时，也可以使用键盘编辑它的坐标。
+在 `Controls/Live info` 面板的 `Base Stations` 窗口中，点击 `Add`，然后在场景中希望放置基站的位置点击一次，基站就会被放置到点击的位置。选中基站后，可以编辑它的坐标和 `TX power`。每个基站分别保存自己的发射功率；旧版基站 JSON 中没有 `tx_power_dbm` 时，该基站使用默认值 `10 dBm`。
 
-如果要删除基站，请选中它并点击 `Deleted selected`。
+如果要删除基站，请选中它并点击 `Delete selected`。
 
-如果要保存基站配置，可以点击 `Save JSON`，将场景中所有基站的配置保存到 JSON 文件。要加载 JSON 文件，请点击 `Load JOSM` 加载基站。
+如果要保存基站配置，可以点击 `Save JSON`，将场景中所有基站的配置保存到 JSON 文件。要加载 JSON 文件，请点击 `Load JSON` 加载基站。
 
 ## 5. 选择 Sionna 仿真所需的必要 topic
 

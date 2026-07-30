@@ -344,6 +344,7 @@ bool baseStationEquivalent(const BaseStation& a, const BaseStation& b) {
         && a.name == b.name
         && nearlyEqualVec3(a.position, b.position)
         && nearlyEqualVec3(a.color, b.color)
+        && nearlyEqual(a.txPowerDbm, b.txPowerDbm)
         && a.previewCameraName == b.previewCameraName
         && a.previewRosTopic == b.previewRosTopic
         && nearlyEqual(a.previewOffsetZ, b.previewOffsetZ)
@@ -1263,6 +1264,7 @@ QString findLatestDenseCkmMetaFile(const QString& rootDirPath) {
 QStringList denseCkmMetricList() {
     return {
         QStringLiteral("power_db"),
+        QStringLiteral("total_rf_power_dbm"),
         QStringLiteral("path_loss_db"),
         QStringLiteral("tau_std_ns"),
         QStringLiteral("los_binary"),
@@ -1293,7 +1295,8 @@ QStringList denseCkmSysMetricList() {
 
 QString denseCkmMetricDisplayName(const QString& metric) {
     static const QMap<QString, QString> labels = {
-        {QStringLiteral("power_db"), QStringLiteral("Power (dB)")},
+        {QStringLiteral("power_db"), QStringLiteral("Best Station Received Power (dBm)")},
+        {QStringLiteral("total_rf_power_dbm"), QStringLiteral("Total RF Power (dBm)")},
         {QStringLiteral("path_loss_db"), QStringLiteral("Path loss (dB)")},
         {QStringLiteral("tau_std_ns"), QStringLiteral("RMS delay spread (ns)")},
         {QStringLiteral("los_binary"), QStringLiteral("LoS binary")},
@@ -1495,6 +1498,7 @@ BaseStation baseStationFromJson(const QJsonObject& obj) {
     station.name = obj.value(QStringLiteral("name")).toString().trimmed();
     station.position = vec3FromJson(obj.value(QStringLiteral("position")));
     station.color = vec3FromJson(obj.value(QStringLiteral("color")), {0.95, 0.55, 0.20});
+    station.txPowerDbm = obj.value(QStringLiteral("tx_power_dbm")).toDouble(kDefaultBaseStationTxPowerDbm);
     station.previewCameraName = obj.value(QStringLiteral("preview_camera_name")).toString().trimmed();
     station.previewRosTopic = obj.value(QStringLiteral("preview_ros_topic")).toString().trimmed();
     station.previewOffsetZ = obj.value(QStringLiteral("preview_offset_z")).toDouble(0.0);
@@ -1559,7 +1563,6 @@ QJsonObject simulationSettingsToJson(const SimulationSettings& value) {
     obj[QStringLiteral("sys_temperature_k")] = value.sysTemperatureK;
     obj[QStringLiteral("sys_bler_target")] = value.sysBlerTarget;
     obj[QStringLiteral("sys_mcs_table_index")] = value.sysMcsTableIndex;
-    obj[QStringLiteral("sys_bs_tx_power_dbm")] = value.sysBsTxPowerDbm;
 
     obj[QStringLiteral("enable_beamforming")] = value.enableBeamforming;
     obj[QStringLiteral("beam_selection_mode")] = value.beamSelectionMode;
@@ -1634,7 +1637,6 @@ SimulationSettings simulationSettingsFromJson(const QJsonObject& obj, const Simu
     if (obj.contains(QStringLiteral("sys_temperature_k"))) value.sysTemperatureK = obj.value(QStringLiteral("sys_temperature_k")).toDouble(value.sysTemperatureK);
     if (obj.contains(QStringLiteral("sys_bler_target"))) value.sysBlerTarget = obj.value(QStringLiteral("sys_bler_target")).toDouble(value.sysBlerTarget);
     if (obj.contains(QStringLiteral("sys_mcs_table_index"))) value.sysMcsTableIndex = obj.value(QStringLiteral("sys_mcs_table_index")).toInt(value.sysMcsTableIndex);
-    if (obj.contains(QStringLiteral("sys_bs_tx_power_dbm"))) value.sysBsTxPowerDbm = obj.value(QStringLiteral("sys_bs_tx_power_dbm")).toDouble(value.sysBsTxPowerDbm);
 
     if (obj.contains(QStringLiteral("enable_beamforming"))) value.enableBeamforming = obj.value(QStringLiteral("enable_beamforming")).toBool(value.enableBeamforming);
     if (obj.contains(QStringLiteral("beam_selection_mode"))) value.beamSelectionMode = obj.value(QStringLiteral("beam_selection_mode")).toString(value.beamSelectionMode);
@@ -3991,6 +3993,7 @@ void MainWindow::pushBaseStationUndoState(const std::vector<BaseStation>& statio
                 && std::abs(a.color.x - b.color.x) < 1e-9
                 && std::abs(a.color.y - b.color.y) < 1e-9
                 && std::abs(a.color.z - b.color.z) < 1e-9
+                && std::abs(a.txPowerDbm - b.txPowerDbm) < 1e-9
                 && a.previewCameraName == b.previewCameraName
                 && a.previewRosTopic == b.previewRosTopic
                 && std::abs(a.previewOffsetZ - b.previewOffsetZ) < 1e-9
@@ -4401,6 +4404,15 @@ void MainWindow::buildRightDock() {
         QObject::connect(spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onStationCoordinateEdited);
     }
 
+    stationTxPowerSpin_ = new QDoubleSpinBox(baseStationBox);
+    stationTxPowerSpin_->setRange(-50.0, 80.0);
+    stationTxPowerSpin_->setDecimals(2);
+    stationTxPowerSpin_->setSingleStep(1.0);
+    stationTxPowerSpin_->setSuffix(tr(" dBm"));
+    stationTxPowerSpin_->setKeyboardTracking(false);
+    stationTxPowerSpin_->setEnabled(false);
+    connect(stationTxPowerSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::onStationDetailsEdited);
+
     stationPreviewOffsetZSpin_ = new QDoubleSpinBox(baseStationBox);
     stationPreviewOffsetZSpin_->setRange(-1000.0, 1000.0);
     stationPreviewOffsetZSpin_->setDecimals(3);
@@ -4439,6 +4451,7 @@ void MainWindow::buildRightDock() {
     coordRow->addWidget(new QLabel(tr("Z"), baseStationBox));
     coordRow->addWidget(stationZSpin_);
     bsLayout->addRow(tr("Coordinates"), coordRow);
+    bsLayout->addRow(tr("TX power"), stationTxPowerSpin_);
     auto* colorRow = new QHBoxLayout();
     colorRow->addWidget(new QLabel(tr("R"), baseStationBox));
     colorRow->addWidget(stationColorRSpin_);
@@ -6479,7 +6492,7 @@ void MainWindow::rebuildSysDataWindow() {
     QStringList configLines;
     configLines << QStringLiteral("Target BLER: %1").arg(QString::number(simSettings_.sysBlerTarget, 'g', 5));
     configLines << QStringLiteral("MCS table index: %1").arg(simSettings_.sysMcsTableIndex);
-    configLines << QStringLiteral("BS TX power: %1 dBm").arg(QString::number(simSettings_.sysBsTxPowerDbm, 'f', 1));
+    configLines << QStringLiteral("BS TX power: configured per base station");
     configLines << QStringLiteral("Subcarriers: %1").arg(simSettings_.sysNumSubcarriers);
     configLines << QStringLiteral("Subcarrier spacing: %1 Hz").arg(QString::number(simSettings_.sysSubcarrierSpacingHz, 'g', 10));
     configLines << QStringLiteral("OFDM symbols per slot: %1").arg(simSettings_.sysNumOfdmSymbols);
@@ -6585,7 +6598,7 @@ void MainWindow::rebuildSysDataWindow() {
         config.insert(QStringLiteral("sys_temperature_k"), simSettings_.sysTemperatureK);
         config.insert(QStringLiteral("sys_bler_target"), simSettings_.sysBlerTarget);
         config.insert(QStringLiteral("sys_mcs_table_index"), simSettings_.sysMcsTableIndex);
-        config.insert(QStringLiteral("sys_bs_tx_power_dbm"), simSettings_.sysBsTxPowerDbm);
+        config.insert(QStringLiteral("sys_bs_tx_power_dbm"), kDefaultBaseStationTxPowerDbm);
         config.insert(QStringLiteral("enable_beamforming"), simSettings_.enableBeamforming);
         config.insert(QStringLiteral("beam_selection_mode"), simSettings_.beamSelectionMode);
         config.insert(QStringLiteral("beam_codebook_type"), simSettings_.beamCodebookType);
@@ -7739,7 +7752,7 @@ void MainWindow::toggleRosbagResim() {
          << QStringLiteral("--sys-temperature-k") << QString::number(simSettings_.sysTemperatureK, 'g', 8)
          << QStringLiteral("--sys-bler-target") << QString::number(simSettings_.sysBlerTarget, 'g', 8)
          << QStringLiteral("--sys-mcs-table-index") << QString::number(simSettings_.sysMcsTableIndex)
-         << QStringLiteral("--sys-bs-tx-power-dbm") << QString::number(simSettings_.sysBsTxPowerDbm, 'g', 8)
+         << QStringLiteral("--sys-bs-tx-power-dbm") << QString::number(kDefaultBaseStationTxPowerDbm, 'g', 8)
          << QStringLiteral("--los") << (simSettings_.los ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral("--specular-reflection") << (simSettings_.specularReflection ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral("--diffuse-reflection") << (simSettings_.diffuseReflection ? QStringLiteral("true") : QStringLiteral("false"))
@@ -9869,6 +9882,9 @@ void MainWindow::onStationDetailsEdited() {
     if (stationColorBSpin_) {
         updated.color.z = clamp01(stationColorBSpin_->value());
     }
+    if (stationTxPowerSpin_) {
+        updated.txPowerDbm = stationTxPowerSpin_->value();
+    }
     if (stationPreviewOffsetZSpin_) {
         updated.previewOffsetZ = stationPreviewOffsetZSpin_->value();
     }
@@ -9994,6 +10010,10 @@ void MainWindow::onStationSelectionChanged(int index, const airsim_gui::BaseStat
                 stationColorBSpin_->setEnabled(true);
                 stationColorBSpin_->setValue(station.color.z);
             }
+            if (stationTxPowerSpin_) {
+                stationTxPowerSpin_->setEnabled(true);
+                stationTxPowerSpin_->setValue(station.txPowerDbm);
+            }
             if (stationPreviewCameraEdit_) {
                 stationPreviewCameraEdit_->setEnabled(true);
                 stationPreviewCameraEdit_->setText(station.previewCameraName.trimmed().isEmpty() ? defaultPreviewCameraNameForStation(station) : station.previewCameraName.trimmed());
@@ -10039,6 +10059,10 @@ void MainWindow::onStationSelectionChanged(int index, const airsim_gui::BaseStat
             if (stationColorBSpin_) {
                 stationColorBSpin_->setEnabled(false);
                 stationColorBSpin_->setValue(0.0);
+            }
+            if (stationTxPowerSpin_) {
+                stationTxPowerSpin_->setEnabled(false);
+                stationTxPowerSpin_->setValue(kDefaultBaseStationTxPowerDbm);
             }
             if (stationPreviewCameraEdit_) {
                 stationPreviewCameraEdit_->setEnabled(false);
@@ -10635,6 +10659,7 @@ QString MainWindow::exportBaseStationsForSimulator() const {
         obj["id"] = station.id;
         obj["name"] = station.name;
         obj["position"] = QJsonArray{station.position.x, station.position.y, station.position.z};
+        obj["tx_power_dbm"] = station.txPowerDbm;
         obj["preview_camera_name"] = station.previewCameraName;
         obj["preview_offset_z"] = station.previewOffsetZ;
         if (station.previewCameraTargetEnabled) {
@@ -10746,7 +10771,7 @@ bool MainWindow::startInternalSimulator() {
          << QString("_sys_temperature_k:=%1").arg(QString::number(simSettings_.sysTemperatureK, 'g', 8))
          << QString("_sys_bler_target:=%1").arg(QString::number(simSettings_.sysBlerTarget, 'g', 8))
          << QString("_sys_mcs_table_index:=%1").arg(simSettings_.sysMcsTableIndex)
-         << QString("_sys_bs_tx_power_dbm:=%1").arg(QString::number(simSettings_.sysBsTxPowerDbm, 'g', 8))
+         << QString("_sys_bs_tx_power_dbm:=%1").arg(QString::number(kDefaultBaseStationTxPowerDbm, 'g', 8))
          << QString("_enable_beamforming:=%1").arg(simSettings_.enableBeamforming ? "true" : "false")
          << QString("_beam_selection_mode:=%1").arg(simSettings_.beamSelectionMode)
          << QString("_beam_codebook_type:=%1").arg(simSettings_.beamCodebookType)
@@ -11099,7 +11124,7 @@ bool MainWindow::startDenseCkmGeneration() {
          << QStringLiteral("--sys-temperature-k") << QString::number(simSettings_.sysTemperatureK, 'g', 12)
          << QStringLiteral("--sys-bler-target") << QString::number(simSettings_.sysBlerTarget, 'g', 12)
          << QStringLiteral("--sys-mcs-table-index") << QString::number(simSettings_.sysMcsTableIndex)
-         << QStringLiteral("--sys-bs-tx-power-dbm") << QString::number(simSettings_.sysBsTxPowerDbm, 'g', 12)
+         << QStringLiteral("--sys-bs-tx-power-dbm") << QString::number(kDefaultBaseStationTxPowerDbm, 'g', 12)
          << QStringLiteral("--los") << (simSettings_.los ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral("--specular-reflection") << (simSettings_.specularReflection ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral("--diffuse-reflection") << (simSettings_.diffuseReflection ? QStringLiteral("true") : QStringLiteral("false"))
@@ -12506,12 +12531,6 @@ void MainWindow::openSimulationSettings() {
     sysMcsTableSpin->setRange(0, 4);
     sysMcsTableSpin->setValue(simSettings_.sysMcsTableIndex);
 
-    auto* sysTxPowerSpin = new QDoubleSpinBox(sysGroup);
-    sysTxPowerSpin->setRange(-50.0, 80.0);
-    sysTxPowerSpin->setDecimals(2);
-    sysTxPowerSpin->setValue(simSettings_.sysBsTxPowerDbm);
-    sysTxPowerSpin->setSuffix(tr(" dBm"));
-
     sysForm->addRow(QString(), enableSysCheck);
     sysForm->addRow(tr("Subcarriers"), sysNumSubcarriersSpin);
     sysForm->addRow(tr("Subcarrier spacing"), sysSubcarrierSpacingSpin);
@@ -12519,7 +12538,6 @@ void MainWindow::openSimulationSettings() {
     sysForm->addRow(tr("Noise temperature"), sysTemperatureSpin);
     sysForm->addRow(tr("Target BLER"), sysBlerTargetSpin);
     sysForm->addRow(tr("MCS table index"), sysMcsTableSpin);
-    sysForm->addRow(tr("BS TX power"), sysTxPowerSpin);
 
     auto updateSysWidgets = [=]() {
         const bool enabled = enableSysCheck->isChecked();
@@ -12529,7 +12547,6 @@ void MainWindow::openSimulationSettings() {
         sysTemperatureSpin->setEnabled(enabled);
         sysBlerTargetSpin->setEnabled(enabled);
         sysMcsTableSpin->setEnabled(enabled);
-        sysTxPowerSpin->setEnabled(enabled);
     };
     updateSysWidgets();
     connect(enableSysCheck, &QCheckBox::toggled, &dialog, updateSysWidgets);
@@ -13295,8 +13312,6 @@ void MainWindow::openSimulationSettings() {
     simSettings_.sysTemperatureK = sysTemperatureSpin->value();
     simSettings_.sysBlerTarget = sysBlerTargetSpin->value();
     simSettings_.sysMcsTableIndex = sysMcsTableSpin->value();
-    simSettings_.sysBsTxPowerDbm = sysTxPowerSpin->value();
-
     simSettings_.enableBeamforming = enableBeamformingCheck->isChecked();
     simSettings_.beamSelectionMode = beamModeCombo->currentText().trimmed().isEmpty() ? QStringLiteral("exhaustive_sweep") : beamSelectionModeFromUi(beamModeCombo->currentText());
     simSettings_.beamCodebookType = beamCodebookCombo->currentText().trimmed().isEmpty() ? QStringLiteral("auto") : beamCodebookCombo->currentText().trimmed();

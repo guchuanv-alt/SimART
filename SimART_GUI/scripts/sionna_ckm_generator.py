@@ -37,10 +37,16 @@ try:
 except Exception:  # pragma: no cover
     ndi = None
 
-from sionna_sim_only_topic2 import OfflineSionnaSimulator, SimulationConfig, load_bs_list_from_json
+from sionna_sim_only_topic2 import (
+    DEFAULT_BS_TX_POWER_DBM,
+    OfflineSionnaSimulator,
+    SimulationConfig,
+    load_bs_list_from_json,
+)
 
 SUPPORTED_METRICS: List[str] = [
     "power_db",
+    "total_rf_power_dbm",
     "path_loss_db",
     "tau_std_ns",
     "los_binary",
@@ -79,7 +85,8 @@ PREDICTED_BEAM_METRICS = {
 }
 
 METRIC_DISPLAY_NAMES: Dict[str, str] = {
-    "power_db": "Power (dB)",
+    "power_db": "Best Station Received Power (dBm)",
+    "total_rf_power_dbm": "Total RF Power (dBm)",
     "path_loss_db": "Path loss (dB)",
     "tau_std_ns": "RMS delay spread (ns)",
     "los_binary": "LoS binary",
@@ -97,7 +104,8 @@ METRIC_DISPLAY_NAMES: Dict[str, str] = {
 }
 
 METRIC_COLORBAR_LABELS: Dict[str, str] = {
-    "power_db": "Received power (dB)",
+    "power_db": "Best Station Received Power (dBm)",
+    "total_rf_power_dbm": "Total RF Power (dBm)",
     "path_loss_db": "Path loss (dB)",
     "tau_std_ns": "RMS delay spread (ns)",
     "los_binary": "LoS indicator",
@@ -115,7 +123,8 @@ METRIC_COLORBAR_LABELS: Dict[str, str] = {
 }
 
 METRIC_RENDER_LABELS: Dict[str, str] = {
-    "power_db": "Received power",
+    "power_db": "Best Station Received Power",
+    "total_rf_power_dbm": "Total RF Power",
     "path_loss_db": "Path loss",
     "tau_std_ns": "RMS delay spread",
     "los_binary": "LoS indicator",
@@ -133,7 +142,8 @@ METRIC_RENDER_LABELS: Dict[str, str] = {
 }
 
 METRIC_UNITS: Dict[str, str | None] = {
-    "power_db": "dB",
+    "power_db": "dBm",
+    "total_rf_power_dbm": "dBm",
     "path_loss_db": "dB",
     "tau_std_ns": "ns",
     "los_binary": None,
@@ -527,7 +537,9 @@ def normalize_metrics(raw_metrics: List[str], fallback_metric: str) -> List[str]
 
 
 def metric_values_from_summary(metric_names: List[str], summary: Dict[str, Any]) -> Dict[str, float]:
-    best_power_db = summary["best_power_db_raw"]
+    best_rx_power_dbm = summary["best_power_db_raw"]
+    total_rf_power_dbm = summary["total_rf_power_dbm_raw"]
+    best_path_gain_db = summary["best_path_gain_db_raw"]
     best_tau_std_ns = summary["best_tau_std_ns_raw"]
     best_bs_index = summary["best_bs_index"]
     best_rate = summary["best_bs_rate_bpshz_raw"]
@@ -547,9 +559,11 @@ def metric_values_from_summary(metric_names: List[str], summary: Dict[str, Any])
     for metric in metric_names:
         value = float("nan")
         if metric == "power_db":
-            value = best_power_db
+            value = best_rx_power_dbm
+        elif metric == "total_rf_power_dbm":
+            value = total_rf_power_dbm
         elif metric == "path_loss_db":
-            value = -best_power_db if np.isfinite(best_power_db) else float("nan")
+            value = -best_path_gain_db if np.isfinite(best_path_gain_db) else float("nan")
         elif metric == "tau_std_ns":
             value = best_tau_std_ns
         elif metric == "los_binary":
@@ -591,31 +605,73 @@ def extract_point_metrics(
     paths = sim.simulate_one_snapshot(pos_xyz, vel_xyz)
     sys_summary = sim._run_sys_over_rt(paths)
 
-    best_power_db = float("nan")
+    best_rx_power_dbm = float("nan")
+    best_path_gain_db = float("nan")
     best_tau_std_ns = float("nan")
     best_bs_index = -1
     best_rate = float("nan")
     has_any_path = False
     has_any_los = False
-    per_bs_power: List[float] = []
+    per_bs_rx_power_dbm: List[float] = []
+    per_bs_path_gain_db: List[float] = []
+    per_bs_tx_power_dbm: List[float] = []
 
     for tx_idx, bs in enumerate(sim.cfg.bs_list):
         tx_position = np.asarray(bs["position"], dtype=float)
-        all_paths, best = sim.extract_all_paths_for_link(paths, rx_idx=0, tx_idx=tx_idx, tx_position=tx_position, rx_position=pos_xyz)
+        all_paths, best = sim.extract_all_paths_for_link(
+            paths,
+            rx_idx=0,
+            tx_idx=tx_idx,
+            tx_position=tx_position,
+            rx_position=pos_xyz,
+        )
         if all_paths:
             has_any_path = True
         if any(str(path.get("path_type", "")).upper() == "LOS" for path in all_paths):
             has_any_los = True
 
-        power_db = safe_float(best.get("power_db") if best else float("nan"))
+        path_gains_linear: List[float] = []
+        for path in all_paths:
+            path_gain_linear = safe_float(path.get("path_gain_linear", float("nan")))
+            if np.isfinite(path_gain_linear) and path_gain_linear > 0.0:
+                path_gains_linear.append(path_gain_linear)
+
+        aggregate_path_gain_linear = math.fsum(path_gains_linear)
+        path_gain_db = (
+            10.0 * math.log10(aggregate_path_gain_linear)
+            if aggregate_path_gain_linear > 0.0
+            else float("nan")
+        )
+        tx_power_dbm = safe_float(bs.get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM))
+        rx_power_dbm = (
+            path_gain_db + tx_power_dbm
+            if np.isfinite(path_gain_db) and np.isfinite(tx_power_dbm)
+            else float("nan")
+        )
         tau_std_s = safe_float(best.get("tau_std_s") if best else float("nan"))
         tau_std_ns = tau_std_s * 1e9 if np.isfinite(tau_std_s) else float("nan")
-        per_bs_power.append(power_db)
+        per_bs_rx_power_dbm.append(rx_power_dbm)
+        per_bs_path_gain_db.append(path_gain_db)
+        per_bs_tx_power_dbm.append(tx_power_dbm)
 
-        if np.isfinite(power_db) and (not np.isfinite(best_power_db) or power_db > best_power_db):
-            best_power_db = power_db
+        if np.isfinite(path_gain_db) and (not np.isfinite(best_path_gain_db) or path_gain_db > best_path_gain_db):
+            best_path_gain_db = path_gain_db
+
+        if np.isfinite(rx_power_dbm) and (not np.isfinite(best_rx_power_dbm) or rx_power_dbm > best_rx_power_dbm):
+            best_rx_power_dbm = rx_power_dbm
             best_tau_std_ns = tau_std_ns
             best_bs_index = tx_idx
+
+    finite_rx_power_dbm = [value for value in per_bs_rx_power_dbm if np.isfinite(value)]
+    if finite_rx_power_dbm:
+        peak_rx_power_dbm = max(finite_rx_power_dbm)
+        relative_power_sum = math.fsum(
+            math.pow(10.0, (value - peak_rx_power_dbm) / 10.0)
+            for value in finite_rx_power_dbm
+        )
+        total_rf_power_dbm = peak_rx_power_dbm + 10.0 * math.log10(relative_power_sum)
+    else:
+        total_rf_power_dbm = float("nan")
 
     if sys_summary.get("enabled"):
         candidate_rates = np.asarray(sys_summary.get("candidate_rate_bpshz", []), dtype=float).reshape(-1)
@@ -649,15 +705,24 @@ def extract_point_metrics(
         beam_deepsense_gain_db = safe_float(beam_summary.get("selected_beam_gain_db", np.nan))
 
     summary = {
-        "best_power_db": None if not np.isfinite(best_power_db) else float(best_power_db),
-        "best_power_db_raw": best_power_db,
+        # Keep the legacy key names so existing CKM readers remain compatible.
+        "best_power_db": None if not np.isfinite(best_rx_power_dbm) else float(best_rx_power_dbm),
+        "best_power_db_raw": best_rx_power_dbm,
+        "best_rx_power_dbm": None if not np.isfinite(best_rx_power_dbm) else float(best_rx_power_dbm),
+        "total_rf_power_dbm": None if not np.isfinite(total_rf_power_dbm) else float(total_rf_power_dbm),
+        "total_rf_power_dbm_raw": total_rf_power_dbm,
+        "best_path_gain_db": None if not np.isfinite(best_path_gain_db) else float(best_path_gain_db),
+        "best_path_gain_db_raw": best_path_gain_db,
         "best_bs_index": best_bs_index,
         "serving_bs_index": serving_idx,
         "has_any_path": has_any_path,
         "has_any_los": has_any_los,
         "best_bs_rate_bpshz": None if not np.isfinite(best_rate) else float(best_rate),
         "best_bs_rate_bpshz_raw": best_rate,
-        "per_bs_power_db": [None if not np.isfinite(v) else float(v) for v in per_bs_power],
+        "per_bs_power_db": [None if not np.isfinite(v) else float(v) for v in per_bs_path_gain_db],
+        "per_bs_path_gain_db": [None if not np.isfinite(v) else float(v) for v in per_bs_path_gain_db],
+        "per_bs_rx_power_dbm": [None if not np.isfinite(v) else float(v) for v in per_bs_rx_power_dbm],
+        "per_bs_tx_power_dbm": [None if not np.isfinite(v) else float(v) for v in per_bs_tx_power_dbm],
         "best_tau_std_ns": None if not np.isfinite(best_tau_std_ns) else float(best_tau_std_ns),
         "best_tau_std_ns_raw": best_tau_std_ns,
         "candidate_sinr_eff_db_raw": candidate_sinr,
@@ -689,6 +754,8 @@ def extract_point_metrics(
     values = metric_values_from_summary(metric_names, summary)
     for key in [
         "best_power_db_raw",
+        "total_rf_power_dbm_raw",
+        "best_path_gain_db_raw",
         "best_tau_std_ns_raw",
         "best_bs_rate_bpshz_raw",
         "candidate_sinr_eff_db_raw",
@@ -791,7 +858,7 @@ def metric_style(metric: str, grid: np.ndarray, station_count: int) -> Dict[str,
         vmax = center + 1.0
 
     cmap_name = "viridis"
-    if metric in {"power_db", "sys_sinr_eff_db", "best_bs_rate_bpshz", "sys_spectral_efficiency_bpshz", "beam_oracle_gain_db", "beam_deepsense_gain_db"}:
+    if metric in {"power_db", "total_rf_power_dbm", "sys_sinr_eff_db", "best_bs_rate_bpshz", "sys_spectral_efficiency_bpshz", "beam_oracle_gain_db", "beam_deepsense_gain_db"}:
         cmap_name = "turbo"
     elif metric in {"path_loss_db", "tau_std_ns"}:
         cmap_name = "magma"

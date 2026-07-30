@@ -13,6 +13,7 @@
                 0,
                 22
             ],
+            "tx_power_dbm": 10,
             "preview_camera_name": "bs_0_camera",
             "preview_fps": 60,
             "preview_offset_z": 0,
@@ -31,6 +32,7 @@
                 -35,
                 18
             ],
+            "tx_power_dbm": 10,
             "preview_camera_name": "bs_1_camera",
             "preview_fps": 60,
             "preview_offset_z": 0,
@@ -49,6 +51,7 @@
                 87.7,
                 1
             ],
+            "tx_power_dbm": 10,
             "preview_camera_name": "bs_2_camera",
             "preview_fps": 60,
             "preview_offset_z": 0,

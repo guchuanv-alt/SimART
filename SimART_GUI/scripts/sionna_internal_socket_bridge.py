@@ -10,6 +10,7 @@ import socket
 import struct
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import traceback
@@ -563,14 +564,59 @@ def append_rows_csv(rows: List[Dict[str, Any]], csv_path: str) -> None:
         for key in row.keys():
             if key not in fieldnames:
                 fieldnames.append(str(key))
-    with open(csv_path, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        if not file_exists:
+
+    existing_fieldnames: List[str] = []
+    existing_rows: List[Dict[str, Any]] = []
+    if file_exists:
+        with open(csv_path, "r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            existing_fieldnames = list(reader.fieldnames or [])
+            if existing_fieldnames != fieldnames:
+                existing_rows = list(reader)
+
+    if not file_exists or existing_fieldnames == fieldnames:
+        with open(csv_path, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+            if not file_exists:
+                writer.writeheader()
+            for row in rows:
+                normalized = {name: _json_compatible(row.get(name)) for name in fieldnames}
+                writer.writerow(normalized)
+        print(f"[output] measurement csv appended: {csv_path} (+rows={len(rows)})", flush=True)
+        return
+
+    merged_fieldnames = list(existing_fieldnames)
+    for name in fieldnames:
+        if name not in merged_fieldnames:
+            merged_fieldnames.append(name)
+
+    temp_path = ""
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            newline="",
+            encoding="utf-8",
+            dir=os.path.dirname(os.path.abspath(csv_path)),
+            prefix=f".{os.path.basename(csv_path)}.",
+            suffix=".tmp",
+            delete=False,
+        ) as f:
+            temp_path = f.name
+            writer = csv.DictWriter(f, fieldnames=merged_fieldnames, extrasaction="ignore")
             writer.writeheader()
-        for row in rows:
-            normalized = {name: _json_compatible(row.get(name)) for name in fieldnames}
-            writer.writerow(normalized)
-    print(f"[output] measurement csv appended: {csv_path} (+rows={len(rows)})", flush=True)
+            for row in existing_rows:
+                writer.writerow({name: row.get(name, "") for name in merged_fieldnames})
+            for row in rows:
+                writer.writerow({name: _json_compatible(row.get(name)) for name in merged_fieldnames})
+        os.replace(temp_path, csv_path)
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+
+    print(
+        f"[output] measurement csv schema-aligned rewrite: {csv_path} (+rows={len(rows)})",
+        flush=True,
+    )
 
 
 

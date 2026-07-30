@@ -37,11 +37,11 @@ There are 3 coordinate frames used in the GUI:
 
 ## 4. Add base stations
 
-In the `Controls/Live info` panel, in `Bse Stations` window, click on `Add`, then click on the place in the scene where you want to put a base station, then a base station will be placed at the point you clicked. When a base station is selected, its coordinate can also be edited using the keyboard.
+In the `Controls/Live info` panel, click `Add` in the `Base Stations` section and then click the desired location in the scene. After selecting a base station, you can edit its coordinates and `TX power`. Each base station stores its own transmit power. A legacy base-station JSON entry without `tx_power_dbm` uses the `10 dBm` default.
 
-To delete a base station, select it and click `Deleted selected`.
+To delete a base station, select it and click `Delete selected`.
 
-To save the base station configuration, you can click `Save JSON` to save the configuration of all the base stations in the scene to a JSON file. To load the JSON file, click `Load JOSM` to load the base stations.
+To save all base-station settings to a JSON file, click `Save JSON`. To load a base-station JSON file, click `Load JSON`.
 
 ## 5. Select compulsory topics for sionna simulation
 

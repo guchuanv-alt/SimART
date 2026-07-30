@@ -89,6 +89,7 @@ bool JsonConfig::loadBaseStations(const QString& filePath,
         station.name = obj.value("name").toString(station.id);
         station.position = toVec3(obj.value("position").toArray());
         station.color = toVec3(obj.value("color").toArray(), {0.95, 0.55, 0.20});
+        station.txPowerDbm = obj.value("tx_power_dbm").toDouble(kDefaultBaseStationTxPowerDbm);
         station.previewCameraName = obj.value("preview_camera_name").toString().trimmed();
         if (station.previewCameraName.isEmpty()) {
             station.previewCameraName = defaultPreviewCameraNameForStation(station);
@@ -154,6 +155,7 @@ bool JsonConfig::saveBaseStations(const QString& filePath,
         obj["name"] = station.name;
         obj["position"] = QJsonArray{station.position.x, station.position.y, station.position.z};
         obj["color"] = QJsonArray{station.color.x, station.color.y, station.color.z};
+        obj["tx_power_dbm"] = station.txPowerDbm;
         obj["preview_camera_name"] = station.previewCameraName;
         obj["preview_ros_topic"] = station.previewRosTopic;
         obj["preview_offset_z"] = station.previewOffsetZ;

@@ -39,6 +39,7 @@ from sionna_beam_topic_utils import (
 )
 
 C = 299792458.0
+DEFAULT_BS_TX_POWER_DBM = 10.0
 
 # path_type encoding convention. Update this if your project already has a fixed convention.
 PATH_TYPE_UNKNOWN = 0
@@ -121,6 +122,12 @@ def load_bs_list_from_json(json_path: str):
         station["position"] = [float(v) for v in pos_xyz.tolist()]
         station["name"] = str(station.get("name", station.get("id", f"bs_{idx}")))
         station["id"] = str(station.get("id", f"bs_{idx}"))
+        try:
+            station["tx_power_dbm"] = float(station.get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM))
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"invalid tx_power_dbm for base station {station['name']!r}") from e
+        if not math.isfinite(station["tx_power_dbm"]):
+            raise ValueError(f"tx_power_dbm must be finite for base station {station['name']!r}")
         try:
             station["preview_offset_z"] = float(station.get("preview_offset_z", 0.0) or 0.0)
         except Exception:
@@ -524,7 +531,7 @@ class SimulationConfig:
     sys_temperature_k: float = 294.0
     sys_bler_target: float = 0.1
     sys_mcs_table_index: int = 1
-    sys_bs_tx_power_dbm: float = 10.0
+    sys_bs_tx_power_dbm: float = DEFAULT_BS_TX_POWER_DBM
 
     los: bool = True
     specular_reflection: bool = True
@@ -1246,12 +1253,17 @@ class OfflineSionnaSimulator:
             serving_source = "sys_serving_bs"
         elif candidates:
             best_idx = -1
-            best_gain = -np.inf
+            best_rx_power_dbm = -np.inf
             for item in candidates:
                 gain = item.get("oracle_beam_gain_db", np.nan)
-                if np.isfinite(gain) and gain > best_gain:
-                    best_gain = float(gain)
-                    best_idx = int(item.get("tx_idx", -1))
+                tx_idx = int(item.get("tx_idx", -1))
+                if tx_idx < 0 or tx_idx >= len(self.cfg.bs_list) or not np.isfinite(gain):
+                    continue
+                tx_power_dbm = float(self.cfg.bs_list[tx_idx].get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM))
+                rx_power_dbm = float(gain) + tx_power_dbm
+                if rx_power_dbm > best_rx_power_dbm:
+                    best_rx_power_dbm = rx_power_dbm
+                    best_idx = tx_idx
             reference_tx_idx = best_idx
 
         reference_bs_name = ""
@@ -1353,13 +1365,22 @@ class OfflineSionnaSimulator:
         # [num_rx=1, num_rx_ant, num_tx, num_tx_ant, num_ofdm_symbols, num_subcarriers]
         channel_gain_re = torch.mean(torch.abs(h_freq).pow(2).float(), dim=(1, 3))
         channel_gain_re = channel_gain_re[0, ...]
-        num_candidates = min(int(channel_gain_re.shape[0]), int(rt["num_candidates"]))
+        num_candidates = min(
+            int(channel_gain_re.shape[0]),
+            int(rt["num_candidates"]),
+            int(len(self.cfg.bs_list)),
+        )
         if num_candidates <= 0:
             return {"enabled": True, "num_candidates": 0}
 
         channel_gain_re = channel_gain_re[:num_candidates, ...]
 
-        tx_power_watt = float(rt["dbm_to_watt"](float(self.cfg.sys_bs_tx_power_dbm)))
+        candidate_tx_power_dbm = torch.as_tensor(
+            [float(bs.get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM)) for bs in self.cfg.bs_list[:num_candidates]],
+            dtype=channel_gain_re.dtype,
+            device=device,
+        )
+        tx_power_watt = rt["dbm_to_watt"](candidate_tx_power_dbm).reshape(num_candidates, 1, 1)
         noise_watt = max(float(rt["noise_watt"]), 1e-30)
         sinr_re = torch.clamp(channel_gain_re * tx_power_watt / noise_watt, min=0.0)
         rate_per_candidate = torch.mean(torch.log2(1.0 + sinr_re), dim=(1, 2))
@@ -1403,6 +1424,7 @@ class OfflineSionnaSimulator:
             "enabled": True,
             "serving_idx": serving_idx,
             "num_candidates": num_candidates,
+            "candidate_tx_power_dbm": candidate_tx_power_dbm.detach().cpu().numpy().reshape(-1)[:num_candidates],
             "candidate_rate_bpshz": rate_per_candidate.detach().cpu().numpy().reshape(-1)[:num_candidates],
             "candidate_sinr_eff_db": sinr_eff_db.detach().cpu().numpy().reshape(-1)[:num_candidates],
             "candidate_mcs_index": mcs_index.detach().cpu().numpy().reshape(-1)[:num_candidates],
@@ -1459,7 +1481,11 @@ class OfflineSionnaSimulator:
         )
 
         for bs in self.cfg.bs_list:
-            scene.add(Transmitter(name=bs["name"], position=bs["position"]))
+            scene.add(Transmitter(
+                name=bs["name"],
+                position=bs["position"],
+                power_dbm=float(bs.get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM)),
+            ))
 
         scene.add(Receiver(name="uav", position=[0.0, 0.0, 10.0]))
 
@@ -2033,6 +2059,7 @@ class OfflineSionnaSimulator:
                 "bs_x_m": float(tx_position[0]),
                 "bs_y_m": float(tx_position[1]),
                 "bs_z_m": float(tx_position[2]),
+                "bs_tx_power_dbm": float(bs.get("tx_power_dbm", DEFAULT_BS_TX_POWER_DBM)),
                 "num_paths": int(len(all_paths)),
                 "path_index": -1,
                 "amplitude_abs": np.nan,
@@ -2261,6 +2288,7 @@ def log_measurement_rows(df: pd.DataFrame) -> None:
                 _safe_number(row["uav_true_vz_mps"]),
             ],
             "bs_name": row["bs_name"],
+            "bs_tx_power_dbm": _safe_number(row["bs_tx_power_dbm"]) if "bs_tx_power_dbm" in row else None,
             "anchor_id": int(row["anchor_id"]) if "anchor_id" in row else None,
             "tau_s": _safe_number(row["tau_s"]),
             "tau_std_s": _safe_number(row["tau_std_s"]),

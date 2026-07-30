@@ -8,6 +8,8 @@
 
 namespace airsim_gui {
 
+constexpr double kDefaultBaseStationTxPowerDbm = 10.0;
+
 struct Vec3 {
     double x{0.0};
     double y{0.0};
@@ -19,6 +21,7 @@ struct BaseStation {
     QString name;
     Vec3 position;
     Vec3 color{0.95, 0.55, 0.20};
+    double txPowerDbm{kDefaultBaseStationTxPowerDbm};
     QString previewCameraName;
     QString previewRosTopic;
     double previewOffsetZ{0.0};

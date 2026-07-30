@@ -1137,7 +1137,10 @@ QString CkmMapWidget::formatValueWithMetric(const QString& metric, double value)
     if (!std::isfinite(value)) {
         return QStringLiteral("N/A");
     }
-    if (metric == QStringLiteral("power_db") || metric == QStringLiteral("path_loss_db") || metric == QStringLiteral("sys_sinr_eff_db")
+    if (metric == QStringLiteral("power_db") || metric == QStringLiteral("total_rf_power_dbm")) {
+        return QStringLiteral("%1 dBm").arg(QString::number(value, 'f', 2));
+    }
+    if (metric == QStringLiteral("path_loss_db") || metric == QStringLiteral("sys_sinr_eff_db")
         || metric == QStringLiteral("beam_oracle_gain_db") || metric == QStringLiteral("beam_deepsense_gain_db")) {
         return QStringLiteral("%1 dB").arg(QString::number(value, 'f', 2));
     }
