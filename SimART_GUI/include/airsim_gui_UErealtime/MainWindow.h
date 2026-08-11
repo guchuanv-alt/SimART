@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QString>
 #include <QProcess>
+#include <QSet>
 #include <QStringList>
 #include <QVector>
 #include <memory>
@@ -607,6 +608,7 @@ private:
     bool rosbagPlaybackUsingBeamTopic_{false};
     QString rosbagPlaybackPoseTopic_;
     QString rosbagPlaybackTrajectoryTopic_;
+    QSet<QString> rosbagPlaybackTopics_;
     bool forceAllStationCameraPublishing_{false};
     bool manualRosTopicPublishingEnabled_{false};
     QMap<QString, bool> manualRosTopicPublishing_;

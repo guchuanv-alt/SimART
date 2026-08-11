@@ -7475,6 +7475,7 @@ void MainWindow::toggleRosbagPlayback() {
     rosbagPlaybackUsingBeamTopic_ = false;
     rosbagPlaybackPoseTopic_.clear();
     rosbagPlaybackTrajectoryTopic_.clear();
+    rosbagPlaybackTopics_.clear();
     QStringList args = {QStringLiteral("play"), QStringLiteral("--delay=2.0")};
     if (rosbagPlaybackClockCheck_ && rosbagPlaybackClockCheck_->isChecked()) {
         args << QStringLiteral("--clock");
@@ -7495,6 +7496,7 @@ void MainWindow::toggleRosbagPlayback() {
         rosbagPlaybackBagHasWirelessTopics_ = false;
         rosbagPlaybackPoseTopic_.clear();
         rosbagPlaybackTrajectoryTopic_.clear();
+        rosbagPlaybackTopics_.clear();
         updateRosbagUiState();
         return;
     }
@@ -7533,6 +7535,7 @@ void MainWindow::toggleRosbagPlayback() {
         rosbagPlaybackBagHasWirelessTopics_ = false;
         rosbagPlaybackPoseTopic_.clear();
         rosbagPlaybackTrajectoryTopic_.clear();
+        rosbagPlaybackTopics_.clear();
         updateRosbagUiState();
         return;
     }
@@ -7543,6 +7546,11 @@ void MainWindow::toggleRosbagPlayback() {
     rosbagPlaybackUsingBeamTopic_ = !beamTopicForGui.isEmpty();
     rosbagPlaybackPoseTopic_ = poseTopic;
     rosbagPlaybackTrajectoryTopic_ = trajectoryTopicForGui;
+    rosbagPlaybackTopics_.clear();
+    for (const QString& topic : selectedTopics) {
+        rosbagPlaybackTopics_.insert(normalizedRosTopicName(topic));
+    }
+    refreshStationCameraStreamingState();
     refreshInfoPanel();
 
     if (rosbagPlaybackStatusValue_) {
@@ -7833,6 +7841,7 @@ void MainWindow::onRosbagPlaybackFinished(int exitCode, QProcess::ExitStatus exi
     rosbagPlaybackUsingBeamTopic_ = false;
     rosbagPlaybackPoseTopic_.clear();
     rosbagPlaybackTrajectoryTopic_.clear();
+    rosbagPlaybackTopics_.clear();
     rosBridge_->stop();
     if (stopPoseDrivenSimulation) {
         stopInternalSimulator();
@@ -7841,6 +7850,7 @@ void MainWindow::onRosbagPlaybackFinished(int exitCode, QProcess::ExitStatus exi
         rosbagPlaybackStatusValue_->setText(exitCode == 0 ? tr("Playback finished.") : tr("Playback stopped with exit code %1").arg(exitCode));
     }
     appendRosbagLog(QStringLiteral("rosbag play finished with exitCode=%1").arg(exitCode));
+    refreshStationCameraStreamingState();
     refreshInfoPanel();
     updateRosbagUiState();
 }
@@ -8800,6 +8810,9 @@ void MainWindow::refreshStationCameraStreamingState() {
         && (mainLiveViewConnectedNow
             || (stationCameraLastAirSimConnectedMs_ > 0
                 && nowMs - stationCameraLastAirSimConnectedMs_ <= kStationCameraAirSimDisconnectGraceMs));
+    const bool rosbagPlaybackRunning = rosbagPlaybackActive_
+        && rosbagPlayProcess_
+        && rosbagPlayProcess_->state() != QProcess::NotRunning;
     const QSet<QString> subscribedTopics = rosMasterAvailable
         ? rosTopicsWithSubscribers(true)
         : QSet<QString>();
@@ -8825,20 +8838,26 @@ void MainWindow::refreshStationCameraStreamingState() {
         const QString rosTopic = station.previewRosTopic.trimmed().isEmpty()
             ? defaultPreviewRosTopicForStation(station)
             : station.previewRosTopic.trimmed();
+        const QString normalizedRosTopic = normalizedRosTopicName(rosTopic);
+        const bool rosbagTopicAvailable = rosbagPlaybackRunning
+            && rosbagPlaybackTopics_.contains(normalizedRosTopic);
         const bool subscriberDemand = rosMasterAvailable && subscribedTopics.contains(rosTopic);
         const bool manualPublishDemand = manualRosTopicPublishingEnabled_
             && manualRosTopicPublishing_.value(rosTopic, false);
         const bool forcePublishDemand = !manualRosTopicPublishingEnabled_ && forceAllStationCameraPublishing_;
-        const bool publishDemand = rosMasterAvailable
+        const bool publishDemand = !rosbagPlaybackRunning
+            && rosMasterAvailable
             && mainLiveViewConnected
             && (manualRosTopicPublishingEnabled_
                 ? manualPublishDemand
                 : (previewDemand || subscriberDemand || forcePublishDemand));
         const bool shouldSubscribe = rosMasterAvailable
-            && mainLiveViewConnected
-            && (manualRosTopicPublishingEnabled_
-                ? manualPublishDemand
-                : (previewDemand || forcePublishDemand));
+            && (rosbagPlaybackRunning
+                ? (previewDemand && rosbagTopicAvailable)
+                : (mainLiveViewConnected
+                    && (manualRosTopicPublishingEnabled_
+                        ? manualPublishDemand
+                        : (previewDemand || forcePublishDemand))));
         controller->setRosPublishingEnabled(false);
 
         QString publishControlError;
@@ -8854,7 +8873,13 @@ void MainWindow::refreshStationCameraStreamingState() {
         }
 
         if (window->statusLabel) {
-            if (!mainLiveViewConnected && (previewDemand || subscriberDemand || manualPublishDemand || forcePublishDemand)) {
+            if (rosbagPlaybackRunning && previewDemand && !rosMasterAvailable) {
+                window->statusLabel->setText(tr("Waiting for ROS master during rosbag image playback."));
+            } else if (rosbagPlaybackRunning && previewDemand && rosbagTopicAvailable) {
+                window->statusLabel->setText(tr("Displaying recorded rosbag image topic %1.").arg(normalizedRosTopic));
+            } else if (rosbagPlaybackRunning && previewDemand) {
+                window->statusLabel->setText(tr("This rosbag does not contain station image topic %1.").arg(normalizedRosTopic));
+            } else if (!mainLiveViewConnected && (previewDemand || subscriberDemand || manualPublishDemand || forcePublishDemand)) {
                 window->statusLabel->setText(tr("Connect AirSim Live View before displaying station cameras."));
             } else if (!rosMasterAvailable && (previewDemand || subscriberDemand || manualPublishDemand || forcePublishDemand)) {
                 window->statusLabel->setText(tr("Waiting for ROS master / airsim_node_ex."));
@@ -8878,7 +8903,8 @@ void MainWindow::refreshStationCameraStreamingState() {
         }
 
         if (window->dock) {
-            const bool shouldShow = previewDemand && mainLiveViewConnected;
+            const bool shouldShow = previewDemand
+                && (rosbagPlaybackRunning ? rosbagTopicAvailable : mainLiveViewConnected);
             if (shouldShow) {
                 if (!window->dock->isVisible()) {
                     window->dock->show();
@@ -8892,7 +8918,7 @@ void MainWindow::refreshStationCameraStreamingState() {
         }
 
         syncStationCameraWindow(i);
-        controller->setExternalPoseControlEnabled(previewDemand);
+        controller->setExternalPoseControlEnabled(previewDemand && !rosbagPlaybackRunning);
         controller->setRosImageSubscriptionEnabled(shouldSubscribe);
 
         updateStationCameraWindowTitle(i);
@@ -10082,7 +10108,12 @@ void MainWindow::onStationSelectionChanged(int index, const airsim_gui::BaseStat
     if (airSimViewController_) {
         airSimViewController_->setSelectedBaseStationIndex(selectedBaseStationIndex_);
     }
-    if (index >= 0 && (!airSimViewController_ || !airSimViewController_->isRunning() || !airSimViewController_->isConnected())) {
+    const bool rosbagPlaybackRunning = rosbagPlaybackActive_
+        && rosbagPlayProcess_
+        && rosbagPlayProcess_->state() != QProcess::NotRunning;
+    if (index >= 0
+        && !rosbagPlaybackRunning
+        && (!airSimViewController_ || !airSimViewController_->isRunning() || !airSimViewController_->isConnected())) {
         statusBar()->showMessage(tr("Connect AirSim Live View before displaying base-station camera previews."), 5000);
     }
     syncStationCameraSelection();
@@ -11625,8 +11656,10 @@ void MainWindow::disconnectRos() {
     rosbagPlaybackUsingBeamTopic_ = false;
     rosbagPlaybackPoseTopic_.clear();
     rosbagPlaybackTrajectoryTopic_.clear();
+    rosbagPlaybackTopics_.clear();
     rosBridge_->stop();
     stopInternalSimulator();
+    refreshStationCameraStreamingState();
     refreshInfoPanel();
 }
 
