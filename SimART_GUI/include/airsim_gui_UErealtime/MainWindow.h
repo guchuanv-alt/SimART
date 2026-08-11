@@ -48,6 +48,7 @@ namespace airsim_gui {
 class Scene3DWidget;
 class UeViewWidget;
 class AirSimViewController;
+class AirSimEnvironmentDialog;
 class CameraImageStripWidget;
 class SionnaPreviewWidget;
 class CkmMapWidget;
@@ -233,6 +234,7 @@ private slots:
     void showRfDataWindow();
     void showSysDataWindow();
     void showDeveloperToolsPanel();
+    void showAirSimEnvironmentDialog();
     void refreshAirSimCameraList();
     void browseRosbagRecordOutput();
     void toggleRosbagRecording();
@@ -549,6 +551,7 @@ private:
     SionnaPreviewWidget* sionnaPreviewWidget_{nullptr};
     CkmMapWidget* ckmMapWidget_{nullptr};
     AirSimViewController* airSimViewController_{nullptr};
+    AirSimEnvironmentDialog* airSimEnvironmentDialog_{nullptr};
     RosBridge* rosBridge_{nullptr};
     DemoController* demoController_{nullptr};
     SceneManager* sceneManager_{nullptr};
@@ -757,6 +760,7 @@ private:
     QAction* showRfDataWindowAction_{nullptr};
     QAction* showSysDataWindowAction_{nullptr};
     QAction* showDeveloperToolsAction_{nullptr};
+    QAction* showAirSimEnvironmentAction_{nullptr};
     QAction* stopAirSimLiveViewAction_{nullptr};
     QAction* showRosbagToolsAction_{nullptr};
     QAction* editorViewAction_{nullptr};

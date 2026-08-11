@@ -134,6 +134,7 @@ set(HEADERS
   include/airsim_gui_UErealtime/OsmImportDialog.h
   include/airsim_gui_UErealtime/SceneManager.h
   include/airsim_gui_UErealtime/AirSimViewController.h
+  include/airsim_gui_UErealtime/AirSimEnvironmentDialog.h
   include/airsim_gui_UErealtime/UeViewWidget.h
   include/airsim_gui_UErealtime/SionnaPreviewWidget.h
   include/airsim_gui_UErealtime/CkmMapWidget.h
@@ -155,6 +156,7 @@ set(SOURCES
   src/OsmImportDialog.cpp
   src/SceneManager.cpp
   src/AirSimViewController.cpp
+  src/AirSimEnvironmentDialog.cpp
   src/UeViewWidget.cpp
   src/SionnaPreviewWidget.cpp
   src/CkmMapWidget.cpp

@@ -8,6 +8,7 @@
 #include "airsim_gui_UErealtime/SceneManager.h"
 #include "airsim_gui_UErealtime/UeViewWidget.h"
 #include "airsim_gui_UErealtime/AirSimViewController.h"
+#include "airsim_gui_UErealtime/AirSimEnvironmentDialog.h"
 #include "airsim_gui_UErealtime/SionnaPreviewWidget.h"
 #include "airsim_gui_UErealtime/CkmMapWidget.h"
 
@@ -4182,6 +4183,7 @@ void MainWindow::buildMenuBar() {
     auto* simMenu = menuBar()->addMenu(tr("Simulation"));
     simSettingsAction_ = simMenu->addAction(tr("Sionna Settings..."), this, &MainWindow::openSimulationSettings);
     coordinateTransformsAction_ = simMenu->addAction(tr("Coordinate Frames..."), this, &MainWindow::openCoordinateTransformSettings);
+    showAirSimEnvironmentAction_ = simMenu->addAction(tr("AirSim Environment..."), this, &MainWindow::showAirSimEnvironmentDialog);
     showRosbagToolsAction_ = simMenu->addAction(tr("Rosbag Tools..."), this, &MainWindow::showRosbagToolsWindow);
 }
 
@@ -4591,18 +4593,21 @@ void MainWindow::buildRightDock() {
     auto* liveStartButton = new QPushButton(tr("Start Live View"), liveViewBox);
     auto* liveStopButton = new QPushButton(tr("Stop"), liveViewBox);
     auto* liveOpenButton = new QPushButton(tr("Open UE View"), liveViewBox);
+    auto* environmentButton = new QPushButton(tr("Environment..."), liveViewBox);
     connect(airsimSettingsPathEdit_, &QLineEdit::editingFinished, this, &MainWindow::onAirSimSettingsPathEditingFinished);
     connect(browseSettingsButton, &QPushButton::clicked, this, &MainWindow::browseAirSimSettingsPath);
     connect(autoSettingsButton, &QPushButton::clicked, this, &MainWindow::useAutoAirSimSettingsPath);
     connect(liveStartButton, &QPushButton::clicked, this, &MainWindow::startAirSimLiveView);
     connect(liveStopButton, &QPushButton::clicked, this, &MainWindow::stopAirSimLiveView);
     connect(liveOpenButton, &QPushButton::clicked, this, &MainWindow::switchToLiveView);
+    connect(environmentButton, &QPushButton::clicked, this, &MainWindow::showAirSimEnvironmentDialog);
     connect(publishAllStationCameraTopicsButton_, &QPushButton::clicked, this, &MainWindow::startPublishingAllStationCameraTopics);
     connect(stopStationCameraPublishingButton_, &QPushButton::clicked, this, &MainWindow::stopPublishingAllStationCameraTopics);
     liveButtonRow->addWidget(liveStartButton);
     liveButtonRow->addWidget(liveStopButton);
     liveButtonRow->addWidget(liveOpenButton);
     liveViewLayout->addRow(liveButtonRow);
+    liveViewLayout->addRow(tr("Scene"), environmentButton);
     connect(refreshCamerasButton, &QPushButton::clicked, this, &MainWindow::refreshAirSimCameraList);
     connect(airsimHostEdit_, &QLineEdit::textChanged, this, &MainWindow::syncAirSimLiveViewSettings);
     connect(airsimPortEdit_, &QLineEdit::textChanged, this, &MainWindow::syncAirSimLiveViewSettings);
@@ -4812,6 +4817,21 @@ void MainWindow::showDeveloperToolsPanel() {
     developerToolsWindow_->show();
     developerToolsWindow_->raise();
     developerToolsWindow_->activateWindow();
+}
+
+void MainWindow::showAirSimEnvironmentDialog() {
+    if (!airSimEnvironmentDialog_) {
+        airSimEnvironmentDialog_ = new AirSimEnvironmentDialog(this);
+        connect(airSimEnvironmentDialog_, &AirSimEnvironmentDialog::environmentApplied,
+                this, &MainWindow::onStatusMessage);
+    }
+    const QString host = airsimHostEdit_ ? airsimHostEdit_->text().trimmed()
+                                         : QStringLiteral("127.0.0.1");
+    const int port = airsimPortEdit_ ? airsimPortEdit_->text().trimmed().toInt() : 41451;
+    airSimEnvironmentDialog_->setEndpoint(host, port);
+    airSimEnvironmentDialog_->show();
+    airSimEnvironmentDialog_->raise();
+    airSimEnvironmentDialog_->activateWindow();
 }
 
 void MainWindow::refreshDeveloperTopicList() {
