@@ -707,6 +707,10 @@ void FrameTransformManager::ensureBufferReady(QString* errorMessage) const {
     }
 
     auto rebuiltBuffer = std::make_unique<tf2_ros::Buffer>(ros::Duration(3600.0), false);
+    // This buffer is populated synchronously below while mutex_ is held; no /tf listener
+    // updates it asynchronously. Mark it as safe for lookupTransform so tf2 does not emit
+    // its dedicated-thread error for every high-rate GUI transform query.
+    rebuiltBuffer->setUsingDedicatedThread(true);
     const QString rosFrame = normalizeFrameId(rosFrameId_, QStringLiteral("ROS"));
     rebuiltBuffer->setTransform(
         makeTransformStamped(rosToScene, sceneFrameId(), rosFrame),

@@ -3006,6 +3006,20 @@ QString airSimImageTypeName(int imageType) {
     }
 }
 
+const QVector<int>& supportedAirSimRosImageTypes() {
+    static const QVector<int> imageTypes{
+        0, // Scene
+        1, // DepthPlanar
+        2, // DepthPerspective
+        3, // DepthVis
+        4, // DisparityNormalized
+        5, // Segmentation
+        6, // SurfaceNormals
+        7, // Infrared
+    };
+    return imageTypes;
+}
+
 QVector<int> captureImageTypesFromCameraObject(const QJsonObject& cameraObject) {
     QVector<int> imageTypes;
     QSet<int> seen;
@@ -3138,10 +3152,9 @@ QVector<CameraImageLayerItem> parseDroneFrontCameraImageLayerItems(const QString
         cameraName = cameras.begin().key();
     }
 
-    const QVector<int> imageTypes = captureImageTypesFromCameraObject(cameras.value(cameraName).toObject());
     QVector<CameraImageLayerItem> items;
     QSet<QString> seenTopics;
-    for (const int imageType : imageTypes) {
+    for (const int imageType : supportedAirSimRosImageTypes()) {
         const QString imageTypeName = airSimImageTypeName(imageType);
         const QString topic = normalizedRosTopicName(QStringLiteral("/airsim_node/%1/%2/%3")
             .arg(vehicleName, cameraName, imageTypeName));
@@ -3318,6 +3331,7 @@ private:
         QLabel* image{nullptr};
         ros::Subscriber subscriber;
         QImage lastImage;
+        bool messageReceived{false};
     };
 
     static QImage imageFromRosMessage(const sensor_msgs::Image& msg) {
@@ -3518,7 +3532,7 @@ private:
             cardLayout->addWidget(title);
             cardLayout->addWidget(image);
             layout->addWidget(frame);
-            cards_.push_back({stream, frame, title, image, ros::Subscriber()});
+            cards_.push_back({stream, frame, title, image, ros::Subscriber(), QImage(), false});
         }
         applyCardSizes();
     }
@@ -3532,7 +3546,6 @@ private:
         }
         show();
         raise();
-        imageReceived_ = false;
         connectionErrorDialogShown_ = false;
         if (!ros::isInitialized()) {
             failConnection(generation,
@@ -3540,7 +3553,7 @@ private:
                            true);
             return;
         }
-        setAllStatus(tr("Connecting to AirSim camera stream...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
+        setAllStatus(tr("Connecting to ROS image stream...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
         beginRosMasterCheck(generation);
     }
 
@@ -3566,7 +3579,7 @@ private:
         }
         if (!ok) {
             failConnection(generation,
-                           tr("Unable to connect to AirSim camera stream before timeout.\n%1")
+                           tr("Unable to connect to ROS image stream before timeout.\n%1")
                                .arg(errorMessage.trimmed().isEmpty()
                                         ? tr("ROS master is not reachable.")
                                         : errorMessage),
@@ -3595,7 +3608,10 @@ private:
             return;
         }
 
-        setAllStatus(tr("Waiting for AirSim image...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
+        for (Card& card : cards_) {
+            card.messageReceived = false;
+        }
+        setAllStatus(tr("Waiting for ROS image topic...\nTimeout: %1 ms").arg(kAirSimCameraConnectionTimeoutMs));
         for (Card& card : cards_) {
             const QString key = card.item.key;
             const QString topic = card.item.topic;
@@ -3636,7 +3652,6 @@ private:
     }
 
     void startImageTimeout(int generation) {
-        imageReceived_ = false;
         imageTimeoutGeneration_ = generation;
         if (imageTimeoutTimer_) {
             imageTimeoutTimer_->start(kAirSimCameraConnectionTimeoutMs);
@@ -3644,12 +3659,17 @@ private:
     }
 
     void onImageTimeout() {
-        if (imageReceived_ || imageTimeoutGeneration_ != subscriptionGeneration_) {
+        if (imageTimeoutGeneration_ != subscriptionGeneration_) {
             return;
         }
-        failConnection(imageTimeoutGeneration_,
-                       tr("No image arrived on the selected drone camera topic before timeout. Start AirSim and airsim_node, then try again."),
-                       true);
+        for (Card& card : cards_) {
+            if (card.messageReceived || !card.image) {
+                continue;
+            }
+            card.lastImage = QImage();
+            card.image->setPixmap(QPixmap());
+            card.image->setText(tr("No image received on topic\n%1").arg(card.item.topic));
+        }
     }
 
     void failConnection(int generation, const QString& detail, bool showDialog) {
@@ -3657,25 +3677,22 @@ private:
             return;
         }
         shutdownSubscriptions();
-        const QString message = tr("Unable to connect to AirSim camera stream.");
+        const QString message = tr("Unable to connect to ROS image stream.");
         setAllStatus(QStringLiteral("%1\n%2").arg(message, detail));
         if (showDialog && !connectionErrorDialogShown_) {
             connectionErrorDialogShown_ = true;
             QMessageBox::warning(window() ? window() : this,
-                                 tr("AirSim Camera Stream"),
+                                 tr("ROS Image Stream"),
                                  QStringLiteral("%1\n\n%2").arg(message, detail));
         }
     }
 
     void updateImage(const QString& key, const QString& topic, const QImage& image) {
-        imageReceived_ = true;
-        if (imageTimeoutTimer_) {
-            imageTimeoutTimer_->stop();
-        }
         for (Card& card : cards_) {
             if (card.item.key != key) {
                 continue;
             }
+            card.messageReceived = true;
             if (image.isNull()) {
                 card.lastImage = QImage();
                 card.image->setText(tr("Unsupported image encoding\n%1").arg(topic));
@@ -3728,7 +3745,6 @@ private:
     QTimer* imageTimeoutTimer_{nullptr};
     int subscriptionGeneration_{0};
     int imageTimeoutGeneration_{0};
-    bool imageReceived_{false};
     bool connectionErrorDialogShown_{false};
 };
 
