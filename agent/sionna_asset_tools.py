@@ -1165,7 +1165,7 @@ def export_simple_mitsuba_xml(path, uncertain_color_mode="palette", binary_ply=T
         if normalized_target == normalize_name(STRICT_UNCERTAIN_MATERIAL):
             material_id = f"mat-review_{clean_id(source_material_name)}"
         elif normalized_target.startswith("itu_"):
-            material_id = f"mat-{clean_id(target_material_name)}"
+            material_id = f"mat-{clean_id(target_material_name)}__src_{clean_id(source_material_name)}"
         else:
             material_id = f"mat-{clean_id(material_name)}"
         if material_id not in material_defs:
@@ -1371,7 +1371,7 @@ def run_export_sionna_from_blend(payload):
     )
     split_result = {"split_source_count": 0, "renamed_count": 0, "errors": []}
     rebuild_result = None
-    if payload.get("exporter", "mitsuba") == "mitsuba":
+    if payload.get("exporter", "mitsuba") in {"mitsuba", "simple"}:
         rebuild_result = rebuild_scene_as_clean_single_material_meshes(
             name_contains=payload.get("name_contains", ""),
             overrides=payload.get("material_overrides", {}),
@@ -1454,14 +1454,28 @@ def run_export_sionna_from_fbx(payload):
         object_preview_limit=payload.get("object_preview_limit", 20),
     )
     split_result = {"split_source_count": 0, "renamed_count": 0, "errors": []}
-    if payload.get("split_by_material", True) and payload.get("preserve_source_material_names", False):
-        split_result = split_scene_by_material(payload.get("name_contains", ""))
-    applied = apply_sionna_material_mapping(
-        name_contains=payload.get("name_contains", ""),
-        overrides=payload.get("material_overrides", {}),
-    )
-    if payload.get("split_by_material", True) and not payload.get("preserve_source_material_names", False):
-        split_result = split_scene_by_material(payload.get("name_contains", ""))
+    rebuild_result = None
+    if payload.get("simple_xml_export", False) and payload.get("preserve_source_material_names", False):
+        rebuild_result = rebuild_scene_as_clean_single_material_meshes(
+            name_contains=payload.get("name_contains", ""),
+            overrides=payload.get("material_overrides", {}),
+            uncertain_color_mode=payload.get("uncertain_color_mode", "palette"),
+        )
+        applied = {
+            "changed_object_count": rebuild_result["created_object_count"],
+            "changed_slot_count": rebuild_result["created_object_count"],
+            "changed_objects_preview": rebuild_result["created_objects_preview"],
+            "mapping_counts": rebuild_result["material_counts"],
+        }
+    else:
+        if payload.get("split_by_material", True) and payload.get("preserve_source_material_names", False):
+            split_result = split_scene_by_material(payload.get("name_contains", ""))
+        applied = apply_sionna_material_mapping(
+            name_contains=payload.get("name_contains", ""),
+            overrides=payload.get("material_overrides", {}),
+        )
+        if payload.get("split_by_material", True) and not payload.get("preserve_source_material_names", False):
+            split_result = split_scene_by_material(payload.get("name_contains", ""))
 
     result = {
         "source_path": payload["fbx_path"],
@@ -1474,6 +1488,7 @@ def run_export_sionna_from_fbx(payload):
         "mapping_counts": applied["mapping_counts"],
         "split_by_material": payload.get("split_by_material", True),
         "split_result": split_result,
+        "rebuild_result": rebuild_result,
         "saved_blend": None,
         "exported_xml": None,
         "mitsuba_operator": None,

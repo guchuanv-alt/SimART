@@ -16,7 +16,7 @@ def add_vendor_path() -> str:
 add_vendor_path()
 
 from sionna_rt_gui import DEFAULT_CONFIG_PATH  # noqa: E402
-from sionna_rt_gui.config import load_config  # noqa: E402
+from sionna_rt_gui.config import RenderingMode, load_config  # noqa: E402
 from sionna_rt_gui.reload import AppHolder  # noqa: E402
 
 
@@ -30,6 +30,10 @@ def main() -> int:
     cfg = load_config(DEFAULT_CONFIG_PATH, scene_filename=args.scene)
     cfg.title = args.title
     cfg.use_live_reload = False
+    # Use the lightweight mesh preview by default. Ray tracing makes large
+    # material-slot review scenes dark and sluggish, while rasterization matches
+    # the flat review-color style used for material inspection.
+    cfg.rendering.mode = RenderingMode.RASTERIZATION
     # Show the full imported city by default. The upstream GUI enables a slice
     # plane at the scene bbox z-center, which cuts BigCitySample in half because
     # z is a horizontal map axis for these Sionna scenes.

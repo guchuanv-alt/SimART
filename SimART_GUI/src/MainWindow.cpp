@@ -4922,6 +4922,80 @@ void MainWindow::setAgentChatRunning(bool running) {
     }
 }
 
+QString MainWindow::applyAgentActionsFromOutput(const QString& output) {
+    static const QString prefix = QStringLiteral("SIMART_AGENT_ACTION_JSON=");
+    QStringList displayLines;
+    const QStringList lines = output.split(QRegularExpression(QStringLiteral("[\r\n]+")), QString::SkipEmptyParts);
+    for (const QString& rawLine : lines) {
+        const QString line = rawLine.trimmed();
+        if (!line.startsWith(prefix)) {
+            displayLines << rawLine;
+            continue;
+        }
+
+        QJsonParseError parseError;
+        const QByteArray payload = line.mid(prefix.size()).toUtf8();
+        const QJsonDocument doc = QJsonDocument::fromJson(payload, &parseError);
+        if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+            appendAgentChatMessage(QStringLiteral("System"),
+                                   tr("Agent action JSON could not be parsed: %1").arg(parseError.errorString()));
+            continue;
+        }
+
+        QString message;
+        if (applyAgentAction(doc.object(), &message) && !message.trimmed().isEmpty()) {
+            appendAgentChatMessage(QStringLiteral("System"), message);
+        } else if (!message.trimmed().isEmpty()) {
+            appendAgentChatMessage(QStringLiteral("System"), message);
+        }
+    }
+    return displayLines.join(QStringLiteral("\n")).trimmed();
+}
+
+bool MainWindow::applyAgentAction(const QJsonObject& action, QString* message) {
+    const QString actionName = action.value(QStringLiteral("action")).toString().trimmed();
+    if (actionName == QStringLiteral("set_scene_xml")) {
+        const QString scenePath = QDir::cleanPath(action.value(QStringLiteral("scene_xml")).toString().trimmed());
+        const QString weather = action.value(QStringLiteral("weather")).toString().trimmed();
+        if (scenePath.isEmpty()) {
+            if (message) {
+                *message = tr("Agent requested scene XML switching, but no scene_xml path was provided.");
+            }
+            return false;
+        }
+        if (!QFileInfo::exists(scenePath)) {
+            if (message) {
+                *message = tr("Agent requested scene XML switching, but the file does not exist:\n%1").arg(scenePath);
+            }
+            return false;
+        }
+
+        simSettings_.scenePath = scenePath;
+        syncSionnaPreviewSettings();
+        markGuiConfigDirty();
+        refreshInfoPanel();
+
+        if (message) {
+            QStringList lines;
+            lines << tr("Simulation scene XML switched%1:")
+                         .arg(weather.isEmpty() ? QString() : tr(" to weather profile \"%1\"").arg(weather));
+            lines << scenePath;
+            lines << tr("This affects Sionna simulation/CKM XML selection. The FBX-based main visual scene may look unchanged.");
+            if (simulatorProcess_ && simulatorProcess_->state() != QProcess::NotRunning) {
+                lines << tr("The internal simulator is already running; restart it to use the new XML.");
+            }
+            *message = lines.join(QStringLiteral("\n"));
+        }
+        onStatusMessage(tr("Agent switched simulation scene XML: %1").arg(QFileInfo(scenePath).fileName()));
+        return true;
+    }
+
+    if (message) {
+        *message = tr("Unknown agent action: %1").arg(actionName.isEmpty() ? QStringLiteral("<empty>") : actionName);
+    }
+    return false;
+}
+
 void MainWindow::sendAgentChatRequest() {
     if (!agentProcess_ || !agentChatInput_) {
         return;
@@ -5012,10 +5086,11 @@ void MainWindow::onAgentProcessFinished(int exitCode, QProcess::ExitStatus exitS
 
     const QString output = agentPendingOutput_.trimmed();
     if (!output.isEmpty()) {
+        const QString displayOutput = applyAgentActionsFromOutput(output);
         appendAgentChatMessage(exitStatus == QProcess::NormalExit && exitCode == 0
                                    ? QStringLiteral("Agent")
                                    : QStringLiteral("Agent Error"),
-                               output);
+                               displayOutput.isEmpty() ? output : displayOutput);
     } else {
         appendAgentChatMessage(QStringLiteral("System"),
                                tr("Agent finished with no output. Exit code: %1").arg(exitCode));

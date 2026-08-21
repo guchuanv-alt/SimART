@@ -38,6 +38,7 @@ class QGroupBox;
 class QFrame;
 class QProgressBar;
 class QSlider;
+class QJsonObject;
 class QTableWidget;
 class QCloseEvent;
 class QEvent;
@@ -538,6 +539,8 @@ private:
     QString simartRepoRootPath() const;
     void appendAgentChatMessage(const QString& speaker, const QString& text, const QString& color = QString());
     void setAgentChatRunning(bool running);
+    QString applyAgentActionsFromOutput(const QString& output);
+    bool applyAgentAction(const QJsonObject& action, QString* message = nullptr);
     void showShortDiagnosticWarning(const QString& title, const QString& summary, const QString& detail);
     double currentAirSimBrightnessFactor() const;
     static QVector<int> parseBeamTopkIndices(const QString& text);

@@ -1,0 +1,98 @@
+# First-pass weather material profiles for currently uncertain BigCity surfaces.
+#
+# These values are engineering placeholders for workflow validation. They are
+# intentionally centralized here so later literature/measurement-based values
+# can replace them without editing scene XMLs by hand.
+
+weather_profiles:
+  clear:
+    wetness: 0.0
+    color: "0.950000 0.780000 0.250000"      # warm sunlit yellow
+  cloudy:
+    wetness: 0.1
+    color: "0.550000 0.600000 0.650000"      # cloudy gray-blue
+  light_rain:
+    wetness: 0.35
+    color: "0.350000 0.650000 0.950000"      # light rainy blue
+  moderate_rain:
+    wetness: 0.65
+    color: "0.150000 0.350000 0.850000"      # saturated rain blue
+  heavy_rain:
+    wetness: 1.0
+    color: "0.050000 0.100000 0.450000"      # dark storm blue
+
+material_classes:
+  roof_bitumen:
+    dry:
+      relative_permittivity: 4.0
+      conductivity: 0.005
+    wet:
+      relative_permittivity: 7.0
+      conductivity: 0.05
+    thickness: 0.1
+    scattering_coefficient: 0.0
+    xpd_coefficient: 0.0
+
+  road_asphalt:
+    dry:
+      relative_permittivity: 4.5
+      conductivity: 0.005
+    wet:
+      relative_permittivity: 8.0
+      conductivity: 0.05
+    thickness: 0.1
+    scattering_coefficient: 0.0
+    xpd_coefficient: 0.0
+
+  grass_ground:
+    dry:
+      relative_permittivity: 10.0
+      conductivity: 0.01
+    wet:
+      relative_permittivity: 25.0
+      conductivity: 0.1
+    thickness: 0.1
+    scattering_coefficient: 0.0
+    xpd_coefficient: 0.0
+
+  concrete_ground:
+    dry:
+      relative_permittivity: 5.24
+      conductivity: 0.12
+    wet:
+      relative_permittivity: 9.0
+      conductivity: 0.25
+    thickness: 0.1
+    scattering_coefficient: 0.0
+    xpd_coefficient: 0.0
+
+  brick_paved_ground:
+    dry:
+      relative_permittivity: 3.91
+      conductivity: 0.03
+    wet:
+      relative_permittivity: 7.0
+      conductivity: 0.1
+    thickness: 0.1
+    scattering_coefficient: 0.0
+    xpd_coefficient: 0.0
+
+material_id_rules:
+  - class: roof_bitumen
+    contains:
+      - "roof"
+  - class: road_asphalt
+    contains:
+      - "asphalt1_road"
+  - class: grass_ground
+    contains:
+      - "grass"
+  - class: concrete_ground
+    contains:
+      - "curb"
+      - "concrete1_ground"
+      - "gutter"
+      - "sidewalk"
+  - class: brick_paved_ground
+    contains:
+      - "brick1_rrx_ground"
