@@ -548,7 +548,6 @@ def generate_uncertain_material_scene_xml(
 def generate_environment_material_scene_xml(
     scene_label: str,
     environment_json: str,
-    color: str,
     rationale: str = "",
 ) -> str:
     """Generate one all-material XML from weather inputs, without preset scenes."""
@@ -559,7 +558,6 @@ def generate_environment_material_scene_xml(
         output_root=AGENT_SCENE_DIR,
         scene_label=label,
         environment=environment,
-        color=color,
         rationale=rationale,
     )
     payload = {
@@ -616,7 +614,6 @@ def build_tools(allow_apply: bool):
     def generate_environment_material_scene(
         scene_label: str,
         environment_json: str,
-        color: str,
         rationale: str = "",
     ) -> str:
         """Generate and switch to a request-specific BigCity XML from environment variables.
@@ -641,7 +638,9 @@ def build_tools(allow_apply: bool):
         ITU-R P.527-6 water/ice/snow dielectric models, and a
         normal-incidence layered equivalent for the single-material XML limit.
 
-        color must be one RGB string in 0..1 such as "0.05 0.10 0.45".
+        The local model chooses a deterministic display color from
+        material_moisture: warm yellow for dry/clear weather, then gray-blue,
+        pale blue, saturated blue, and dark storm blue as moisture increases.
         The returned SIMART_AGENT_ACTION_JSON line must be included exactly in
         the final answer so the GUI can switch scene XML.
         """
@@ -649,7 +648,6 @@ def build_tools(allow_apply: bool):
             return generate_environment_material_scene_xml(
                 scene_label=scene_label,
                 environment_json=environment_json,
-                color=color,
                 rationale=rationale,
             )
         except Exception as exc:

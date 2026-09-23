@@ -41,6 +41,15 @@ MATERIAL_ENDPOINTS: dict[str, tuple[tuple[float, float], tuple[float, float]]] =
     "vegetated_ground": ((13.23379658, 0.26971118), (50.94386830, 1.58356371)),
 }
 
+# Human-readable weather colors, interpolated by normalized material moisture.
+WEATHER_COLOR_STOPS: tuple[tuple[float, tuple[float, float, float]], ...] = (
+    (0.00, (0.95, 0.78, 0.25)),  # clear: warm sunlight
+    (0.10, (0.55, 0.60, 0.65)),  # cloudy: gray-blue
+    (0.35, (0.35, 0.65, 0.95)),  # light rain: pale blue
+    (0.65, (0.15, 0.35, 0.85)),  # moderate rain: saturated blue
+    (0.85, (0.05, 0.10, 0.45)),  # heavy rain: dark storm blue
+)
+
 
 @dataclass(frozen=True)
 class MaterialProfile:
@@ -282,11 +291,15 @@ def _set_float(bsdf: ET.Element, name: str, value: float) -> None:
     node.set("value", f"{value:.12g}")
 
 
-def _normalise_color(color: str) -> str:
-    parts = str(color).replace(",", " ").split()
-    if len(parts) != 3:
-        raise ValueError("color must contain three RGB components in 0..1")
-    return " ".join(f"{clamp(float(part), 0.0, 1.0):.6f}" for part in parts)
+def weather_visual_color(moisture: float) -> str:
+    """Return a deterministic, human-readable RGB color for weather wetness."""
+    value = clamp(float(moisture), 0.0, 1.0)
+    for (low_value, low_rgb), (high_value, high_rgb) in zip(WEATHER_COLOR_STOPS, WEATHER_COLOR_STOPS[1:]):
+        if value <= high_value:
+            ratio = (value - low_value) / (high_value - low_value)
+            rgb = tuple(low + ratio * (high - low) for low, high in zip(low_rgb, high_rgb))
+            return " ".join(f"{channel:.6f}" for channel in rgb)
+    return " ".join(f"{channel:.6f}" for channel in WEATHER_COLOR_STOPS[-1][1])
 
 
 def generate_dynamic_weather_scene(
@@ -295,7 +308,6 @@ def generate_dynamic_weather_scene(
     output_root: Path,
     scene_label: str,
     environment: dict,
-    color: str,
     rationale: str = "",
     frequency_hz: float = DEFAULT_FREQUENCY_HZ,
 ) -> tuple[Path, Path, dict]:
@@ -303,6 +315,7 @@ def generate_dynamic_weather_scene(
     if not template_xml.exists():
         raise FileNotFoundError(f"template XML does not exist: {template_xml}")
     state = parse_surface_state(environment)
+    visual_color = weather_visual_color(state.moisture)
     digest_source = json.dumps({"label": scene_label, "environment": environment, "frequency_hz": frequency_hz}, sort_keys=True, ensure_ascii=False)
     digest = __import__("hashlib").sha1(digest_source.encode("utf-8")).hexdigest()[:10]
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", scene_label.strip()).strip("_.-")[:48] or "weather"
@@ -334,7 +347,7 @@ def generate_dynamic_weather_scene(
         _set_float(bsdf, "scattering_coefficient", 0.0)
         _set_float(bsdf, "xpd_coefficient", 0.0)
         rgb = _find_or_add(bsdf, "rgb", "color")
-        rgb.set("value", _normalise_color(color))
+        rgb.set("value", visual_color)
         updated.append({"material_id": material_id, "relative_permittivity": eps_r, "conductivity": sigma, **details})
 
     for ref in root.findall(".//ref"):
@@ -356,6 +369,7 @@ def generate_dynamic_weather_scene(
         "created_unix_time": time.time(),
         "frequency_hz": frequency_hz,
         "environment": asdict(state),
+        "visual_color_rgb": visual_color,
         "rationale": rationale,
         "model": {
             "bulk": "fixed dry/wet endpoint linear interpolation",
